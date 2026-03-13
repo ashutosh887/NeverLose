@@ -56,7 +56,8 @@ Required env vars:
 Supervisor Agent (Sonnet 4.6)
 ├── Sales Agent (Haiku 4.5)     — hesitation detection, EMI + offer recommendations
 ├── Offer Agent (Haiku 4.5)     — offer stacking, deal calculation
-├── Payment Agent (Sonnet 4.6)  — order creation, checkout, payment links
+├── Payment Agent (Sonnet 4.6)  — order creation, checkout, payment links, QR codes
+├── Upsell Agent (Haiku 4.5)    — accessory recommendations, AOV optimization
 └── Support Agent (Haiku 4.5)   — order tracking, refunds
 ```
 
@@ -66,15 +67,16 @@ Agents communicate via Bedrock's multi-agent orchestration. The Supervisor route
 
 All Pine Labs API calls go through the Pine Labs MCP Server in "API execution mode." The agent calls tools → MCP Gateway → Pine Labs MCP Server → Pine Labs REST APIs.
 
-8 Pine Labs products used:
+9 Pine Labs products used:
 1. **EMI Calculator v3** — discovers card EMI, debit EMI, cardless EMI, brand EMI
 2. **Offer Engine / Offer Discovery** — instant discounts, cashback, brand subvention
 3. **Payment Gateway** — order creation
 4. **Infinity Checkout** — hosted checkout URL generation (one API call)
 5. **Payment Links** — shareable links for WhatsApp/SMS delivery
-6. **MCP Server** — AI-native API execution layer
-7. **Customers API** — customer profile for personalization
-8. **Convenience Fee API** — cost comparison across payment methods
+6. **UPI QR Code** — scannable in-chat QR; customer pays with GPay/PhonePe/Paytm
+7. **MCP Server** — AI-native API execution layer
+8. **Customers API** — customer profile for personalization
+9. **Convenience Fee API** — cost comparison across payment methods
 
 ### Agent Tools
 
@@ -84,8 +86,10 @@ All Pine Labs API calls go through the Pine Labs MCP Server in "API execution mo
 | `discover_offers` | Query Offer Engine — returns stackable discounts/cashback |
 | `calculate_stacked_deal` | Combine best EMI option + offers into single deal |
 | `search_products` | Merchant product catalog search |
+| `find_accessories` | Find complementary accessories for smart upsell (AOV optimizer) |
 | `create_checkout` | Create Pine Labs order + Infinity Checkout URL (requires `user_confirmed=true`) |
 | `generate_payment_link` | Generate Payment Link for WhatsApp/SMS delivery |
+| `generate_qr_code` | Generate UPI QR code for in-chat payment (GPay/PhonePe/Paytm) |
 | `check_payment_status` | Poll order status |
 | `get_order_details` | Full order info for support flows |
 | `calculate_convenience_fee` | Compare fees across payment methods |
@@ -113,7 +117,67 @@ Backend emits SSE events on each "save" (hesitation → conversion). Dashboard s
 
 - **Offer stacking is the differentiator** — always call `discover_offers` before showing EMI; combine into a single "stacked deal" message with the breakdown
 - **Lead with monthly payment, not total price** — "₹4,722/month" not "₹84,999 with EMI"
+- **Daily cost reframing** — always include daily equivalent ("₹157/day — less than your Swiggy order"); calculated as `monthly_emi / 30`
+- **Full hesitation signal stack** — monitor all of: exit intent (cursor to viewport top), idle time (15s no interaction), scroll bounce (fast mobile scroll-up), cart stall (60s in cart no checkout), checkout drop (30s on payment page), return visit (same product 2nd view), price copy (clipboard event), wishlist-instead-of-cart, verbal hesitation ("too expensive"/"mehenga"), long EMI dwell (10s on EMI section) — each maps to a specific `[SIGNAL_TYPE]` system message that changes agent tone
+- **Exit intent system message** — `[EXIT_INTENT_DETECTED]`; agent leads with daily cost + social proof
+- **Cart stall system message** — `[CART_STALL_DETECTED]`; agent leads with EMI breakdown for cart total
+- **Checkout drop system message** — `[CHECKOUT_DROP_DETECTED]`; agent pivots immediately to cardless EMI or strongest offer
+- **Return visit system message** — `[RETURN_VISIT_DETECTED]`; agent references prior session ("Back again? Here's a deal we saved for you")
+- **Social proof on first message** — inject seeded stats ("47 customers bought this on EMI today") once per conversation; never repeat
+- **Smart upsell / AOV optimizer** — suggest ONE accessory only if its incremental monthly EMI is <10% of the base product EMI; present as "just ₹167/month more"
+- **Three payment channels** — always ask: web checkout (Infinity Checkout), WhatsApp link (Payment Links API), or UPI QR code (UPI QR API); meet the customer wherever they are
+- **QR payment in chat** — `generate_qr_code` returns a UPI string; rendered as a scannable QR directly in the chat widget
+- **EMI tenure slider** — when presenting EMI options, render an interactive slider component; dragging tenure shows live monthly/daily cost update
 - **Cardless EMI pivot** — when customer has no eligible card, pivot immediately to AXIO/Home Credit/SBI cardless (PAN + phone only)
 - **All amounts in paisa** internally (Pine Labs API format); format as ₹X,XX,XXX for display
 - **Bedrock CRIS endpoint** for Mumbai region: `us.anthropic.claude-sonnet-4-6-20251001-v1:0` (cross-region inference)
 - **Fallback chain:** Bedrock CRIS → Anthropic direct API → mock responses (never fail the demo)
+
+---
+
+## Multilingual Support
+
+Claude handles all Indian languages natively — no translation layer, no extra API, zero marginal cost.
+
+**System prompt addition** (one section in the agent system prompt):
+```
+## LANGUAGE
+Always respond in the same language the customer uses.
+If they speak Hindi, respond in Hindi. If Tamil, respond in Tamil. If Telugu, respond in Telugu.
+Format EMI amounts with ₹ regardless of language.
+```
+
+**Supported languages (native Claude capability):** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, Odia, and English.
+
+**Demo moment:** Customer types "yeh laptop bahut mehenga hai, koi EMI option hai kya?" → agent responds in Hindi with the stacked EMI + offer breakdown.
+
+**Why it matters:** India has 900M+ internet users; only ~125M are comfortable in English. An EMI agent that only works in English misses 85% of the addressable market.
+
+---
+
+## Voice Input
+
+Implemented via the browser's Web Speech API — no backend changes, no third-party service.
+
+```javascript
+const recognition = new webkitSpeechRecognition();
+recognition.lang = 'hi-IN'; // or auto-detect from browser locale
+recognition.interimResults = false;
+recognition.onresult = (e) => {
+  const text = e.results[0][0].transcript;
+  sendToAgent(text); // same flow as typed input
+};
+```
+
+**Demo moment:** Judge watches the presenter speak into their phone mic in Hindi → NeverLose responds in Hindi with EMI options. Goosebump territory for Indian judges.
+
+**Implementation scope:**
+| Feature | Effort | Demo Impact | Status |
+|---------|--------|-------------|--------|
+| Voice input (Web Speech API) | 30 min | HIGH | Included |
+| Multilingual responses (system prompt) | 15 min | HIGH | Included |
+| Voice output — ElevenLabs TTS | 2+ hrs | Negative | Excluded |
+| Voice output — browser speechSynthesis | 20 min | Negative | Excluded |
+| Sign language recognition | 4+ hours | Medium | Excluded |
+
+**Why voice output is excluded:** The agent's responses are rich visual UI — animated EMI cards, stacked deal breakdowns, payment buttons, WhatsApp links. Audio output makes judges listen instead of look, hiding the most impressive part of the demo. ElevenLabs also adds 500ms–2s latency on top of Bedrock, is another API dependency that can fail at the venue, and browser speechSynthesis sounds robotic. Voice input wows; voice output adds risk for zero additional wow.
