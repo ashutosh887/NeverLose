@@ -1,22 +1,10 @@
 """
-Policy Middleware — Phase 4
-
-Cedar-equivalent safety rules enforced BEFORE every tool execution.
-These run outside LLM reasoning — the agent cannot bypass them.
+Safety rules enforced before every tool execution, outside LLM reasoning.
 
 Rules:
-  1. Block create_checkout if amount_paisa > 20_000_000 (₹2,00,000)
+  1. Block create_checkout if amount_paisa > ₹2,00,000
   2. Block create_checkout if user_confirmed is not True
-  3. Block refunds > 5_000_000 paisa (₹50,000) without supervisor_escalated=True
-
-Usage:
-  Wrap tool calls with @enforce_policy or call check_policy() before execution.
-  Returns structured error dict (not exception) so agent can handle gracefully.
-
-TODO (Phase 4):
-  - [ ] @enforce_policy decorator
-  - [ ] check_policy(tool_name, kwargs) function
-  - [ ] Unit tests in tests/test_policy.py
+  3. Block refunds > ₹50,000 without supervisor_escalated=True
 """
 
 from typing import Any, Dict, Optional

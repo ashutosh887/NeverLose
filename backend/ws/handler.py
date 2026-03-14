@@ -1,27 +1,3 @@
-"""
-WebSocket Handler — Full streaming implementation.
-
-Per-connection state:
-  session_id            — unique ID for this chat session
-  conversation_history  — list of {"role", "content"} dicts
-  signal_type           — last received hesitation signal (consumed on next message)
-  content_type          — last tool result type (drives frontend rich UI)
-  last_tool_data        — last tool result payload (sent in message_end)
-
-Client → Server protocol:
-  { "type": "message", "content": "user text" }
-  { "type": "signal",  "signal_type": "EXIT_INTENT_DETECTED" }
-  { "type": "ping" }
-
-Server → Client protocol:
-  { "type": "token",       "content": "partial text" }
-  { "type": "tool_start",  "tool": "check_emi_options", "status": "Checking EMI options..." }
-  { "type": "tool_event",  "tool": "...", "content_type": "emi_schemes", "data": {...} }
-  { "type": "message_end", "session_id": "...", "content_type": "text|emi_schemes|...", "data": {...} }
-  { "type": "signal_ack",  "signal_type": "EXIT_INTENT_DETECTED" }
-  { "type": "error",       "message": "..." }
-  { "type": "pong" }
-"""
 
 import datetime
 import json
@@ -188,18 +164,15 @@ async def handle_websocket(websocket: WebSocket) -> None:
 
             msg_type = data.get("type")
 
-            # ── Ping ─────────────────────────────────────────────────────────
             if msg_type == "ping":
                 await send({"type": "pong"})
                 continue
 
-            # ── Hesitation signal ─────────────────────────────────────────────
             if msg_type == "signal":
                 pending_signal = data.get("signal_type")
                 await send({"type": "signal_ack", "signal_type": pending_signal})
                 continue
 
-            # ── Chat message ──────────────────────────────────────────────────
             if msg_type == "message":
                 content = (data.get("content") or "").strip()
                 if not content:
@@ -224,7 +197,6 @@ async def handle_websocket(websocket: WebSocket) -> None:
                     status = TOOL_STATUS.get(tool_name, f"Running {tool_name}...")
                     await send({"type": "tool_start", "tool": tool_name, "status": status})
 
-                # Monkey-patch _execute_tool to intercept results for frontend
                 from agents import supervisor as sup
                 original_execute = sup._execute_tool
 

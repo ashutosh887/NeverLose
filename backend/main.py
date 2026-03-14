@@ -118,8 +118,8 @@ async def payment_status(order_id: str):
         mock_file = Path(__file__).parent / "mock" / "payment_status.json"
         return json.loads(mock_file.read_text())
     try:
-        from integrations.pine_labs import check_payment_status as pl_check
-        return await pl_check(order_id)
+        from tools.checkout import check_payment_status
+        return await check_payment_status(order_id=order_id)
     except Exception:
         return {"payment": {"order_id": order_id, "status": "PENDING"}}
 

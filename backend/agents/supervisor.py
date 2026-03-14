@@ -1,20 +1,4 @@
-"""
-Supervisor Agent — Full Implementation
-
-Bedrock Global CRIS (AsyncAnthropicBedrock) → Anthropic direct (AsyncAnthropic) → mock fallback.
-
-Intent routing:
-  sales    — hesitation, EMI discovery, verbal "too expensive"
-  offer    — explicit offer/deal/discount queries
-  payment  — checkout, QR, WhatsApp link, payment status
-  upsell   — accessories after EMI confirmed
-  support  — order tracking, refunds
-
-Tool-use loop:
-  1. Call model with all tools
-  2. If response has tool_use blocks → execute tools → loop
-  3. If response is end_turn text → stream tokens via on_token → done
-"""
+"""Supervisor Agent — Bedrock CRIS → Anthropic direct → mock fallback."""
 
 import json
 import logging
@@ -26,13 +10,11 @@ from config.anthropic_config import AnthropicConfig
 
 logger = logging.getLogger(__name__)
 
-# ── Model IDs (sourced from config) ───────────────────────────────────────────
 BEDROCK_SUPERVISOR_MODEL = AWSConfig.BEDROCK_SUPERVISOR_MODEL
 BEDROCK_SUB_AGENT_MODEL = AWSConfig.BEDROCK_SUB_AGENT_MODEL
 ANTHROPIC_SUPERVISOR_MODEL = AnthropicConfig.SUPERVISOR_MODEL
 ANTHROPIC_SUB_AGENT_MODEL = AnthropicConfig.SUB_AGENT_MODEL
 
-# ── Base system prompt ─────────────────────────────────────────────────────────
 BASE_SYSTEM = """You are NeverLose — an AI cart-recovery agent for Pine Labs merchants.
 Your single mission: turn hesitant shoppers into buyers with the best stacked EMI + offer deal.
 
@@ -91,7 +73,6 @@ When the customer says "can you reduce the price?", "kuch discount milega?", "gi
 - Always close the negotiation with a call to action: "Shall I lock in this deal for you now?"
 """
 
-# ── All 11 tools ───────────────────────────────────────────────────────────────
 ALL_TOOLS: List[Dict[str, Any]] = [
     {
         "name": "check_emi_options",
@@ -264,7 +245,6 @@ ALL_TOOLS: List[Dict[str, Any]] = [
     },
 ]
 
-# ── Client factories ───────────────────────────────────────────────────────────
 def _bedrock_client():
     """AnthropicBedrock client — routes through AWS Bedrock CRIS."""
     return AWSConfig.bedrock_client()
@@ -275,7 +255,6 @@ def _direct_client():
     return AnthropicConfig.direct_client()
 
 
-# ── Tool executor ──────────────────────────────────────────────────────────────
 async def _execute_tool(
     tool_name: str,
     tool_input: Dict[str, Any],
@@ -342,7 +321,6 @@ async def _execute_tool(
         return {"error": str(exc), "tool": tool_name}
 
 
-# ── Core tool-use loop ─────────────────────────────────────────────────────────
 async def _run_tool_loop(
     *,
     system: str,
@@ -361,8 +339,7 @@ async def _run_tool_loop(
     Notifies on_tool_start before each tool execution.
     Returns complete final response text.
     """
-    # Try Bedrock first, fall back to direct
-    clients = [
+    clients: List[Any] = [
         (_bedrock_client(), model_bedrock, "Bedrock"),
         (_direct_client(), model_direct, "Anthropic direct"),
     ]
@@ -385,7 +362,6 @@ async def _run_tool_loop(
             logger.warning("%s failed (%s), trying next client", label, exc)
             last_error = exc
 
-    # Both failed — return mock response
     logger.error("All LLM clients failed. Last error: %s", last_error)
     return _mock_fallback(messages)
 
@@ -404,7 +380,6 @@ async def _loop_with_client(
 ) -> str:
     """Inner tool-use loop for a single client."""
     for iteration in range(max_iter):
-        # Call model — streaming on final text response, non-streaming during tool calls
         response = await client.messages.create(
             model=model,
             max_tokens=1024,
@@ -424,17 +399,14 @@ async def _loop_with_client(
                 tool_calls.append({"id": block.id, "name": block.name, "input": block.input})
 
         if stop_reason == "end_turn" or not tool_calls:
-            # Final response — stream tokens if callback provided
             final_text = "".join(text_parts)
             if on_token and final_text:
-                # Stream character-by-character isn't ideal; word-by-word is better UX
                 words = final_text.split(" ")
                 for i, word in enumerate(words):
                     chunk = word + (" " if i < len(words) - 1 else "")
                     await on_token(chunk)
             return final_text
 
-        # Has tool calls — execute them
         assistant_content = []
         if text_parts:
             assistant_content.append({"type": "text", "text": "".join(text_parts)})
@@ -447,7 +419,6 @@ async def _loop_with_client(
             })
         messages.append({"role": "assistant", "content": assistant_content})
 
-        # Execute all tool calls and collect results
         tool_results = []
         for tc in tool_calls:
             result = await _execute_tool(tc["name"], tc["input"], on_tool_start)
@@ -461,7 +432,6 @@ async def _loop_with_client(
     return "I ran into an issue. Please try again."
 
 
-# ── Mock fallback (when all LLM clients fail) ──────────────────────────────────
 def _mock_fallback(messages: List[Dict[str, Any]]) -> str:
     all_content = " ".join(
         m.get("content", "") if isinstance(m.get("content"), str) else ""
@@ -485,7 +455,6 @@ def _mock_fallback(messages: List[Dict[str, Any]]) -> str:
     return "Hi! I'm here to help you get the best EMI deal on your cart. What would you like to know?"
 
 
-# ── Public interface ───────────────────────────────────────────────────────────
 async def supervisor_agent(
     message: str,
     session_id: Optional[str] = None,
@@ -510,7 +479,6 @@ async def supervisor_agent(
     if session_id is None:
         session_id = str(uuid.uuid4())
 
-    # Build system prompt with active signal tone
     system = BASE_SYSTEM
     if signal_type:
         tone_map = {
@@ -527,22 +495,17 @@ async def supervisor_agent(
         }
         system += tone_map.get(signal_type, f"\n## ACTIVE SIGNAL: {signal_type}")
 
-    # Append timing + customer context if provided by WS handler
     if system_extra:
         system += system_extra
 
-    # Build message history
     history = list(conversation_history or [])
 
-    # Inject signal as context if present
     if signal_type:
         history.append({"role": "user", "content": f"[{signal_type}]"})
         history.append({"role": "assistant", "content": "I see the hesitation signal — let me help right away."})
 
-    # Add current user message
     history.append({"role": "user", "content": message})
 
-    # Keep last 20 messages to stay within context
     if len(history) > 20:
         history = history[-20:]
 
