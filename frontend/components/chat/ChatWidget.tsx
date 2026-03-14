@@ -1,10 +1,11 @@
 "use client";
 import { useState, useRef, useEffect, startTransition, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, ShoppingBag, Loader2 } from "lucide-react";
+import { X, MessageCircle, ShoppingBag, Loader2, Phone } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { ChatInput } from "./ChatInput";
 import { SocialProofBadge } from "@/components/shared/SocialProofBadge";
+import { CallOverlay } from "@/components/payment/CallOverlay";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import type { SignalType, PostPurchaseData } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ export function ChatWidget({
 }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
+  const [callVisible, setCallVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, isConnected, isLoading, toolStatus, sendMessage, sendSignal, clearMessages, injectMessage } = useWebSocket();
   const signalFiredRef = useRef<Set<SignalType>>(new Set());
@@ -114,6 +116,12 @@ export function ChatWidget({
 
   return (
     <>
+      <CallOverlay
+        isVisible={callVisible}
+        onClose={() => setCallVisible(false)}
+        productName={productName}
+      />
+
       {/* FAB */}
       <AnimatePresence>
         {!isOpen && (
@@ -177,6 +185,13 @@ export function ChatWidget({
                   </p>
                 </div>
               </div>
+              <button
+                onClick={() => setCallVisible(true)}
+                title="Request a call"
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+              >
+                <Phone className="w-4 h-4" />
+              </button>
               <button
                 onClick={() => setIsOpen(false)}
                 className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"

@@ -61,21 +61,25 @@ export function CallOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={handleDecline}
           className="fixed inset-0 z-[200] flex items-center justify-center bg-gray-950/96 backdrop-blur-lg"
         >
+          {/* Visible close button pinned to screen top-right */}
+          <button
+            onClick={handleDecline}
+            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors z-10"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
           <motion.div
             initial={{ scale: 0.88, y: 28 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.88, y: 28 }}
             transition={{ type: "spring", stiffness: 360, damping: 30 }}
+            onClick={(e) => e.stopPropagation()}
             className="relative flex flex-col items-center gap-8 px-10 py-14 max-w-xs w-full mx-4"
           >
-            <button
-              onClick={handleDecline}
-              className="absolute top-2 right-2 p-2 text-white/30 hover:text-white/70 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
 
             {/* Avatar with pulsing rings */}
             <div className="relative flex items-center justify-center">
