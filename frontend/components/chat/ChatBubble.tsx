@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Package, CreditCard, Bell } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { EMICard } from "@/components/emi/EMICard";
 import { StackedDealCard } from "@/components/emi/StackedDealCard";
 import { TenureSlider } from "@/components/emi/TenureSlider";

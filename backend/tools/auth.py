@@ -7,6 +7,7 @@ The EMI Calculator v3 (legacy API) does NOT use this — it uses
 merchant_id + merchant_access_code directly in the request body.
 """
 
+import base64
 from datetime import datetime, timedelta
 
 import httpx
@@ -34,11 +35,18 @@ async def get_pine_labs_token() -> str:
     ):
         return _token_cache["token"]
 
+    credentials = base64.b64encode(
+        f"{PineLabsConfig.CLIENT_ID}:{PineLabsConfig.CLIENT_SECRET}".encode()
+    ).decode()
+
     async with httpx.AsyncClient(timeout=PineLabsConfig.AUTH_TIMEOUT_SECONDS) as client:
         response = await client.post(
             f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.AUTH_TOKEN}",
-            data=PineLabsConfig.auth_payload(),
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={"grant_type": "client_credentials"},
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": f"Basic {credentials}",
+            },
         )
         response.raise_for_status()
         data = response.json()
