@@ -131,6 +131,7 @@ async def handle_websocket(websocket: WebSocket) -> None:
     session_id = str(uuid.uuid4())
     conversation_history: List[Dict[str, Any]] = []
     pending_signal: Optional[str] = None
+    negotiation_level: int = 1
 
     # Smart Timing Engine — built once per session at connection time
     timing_ctx = _get_timing_context()
@@ -182,6 +183,10 @@ async def handle_websocket(websocket: WebSocket) -> None:
                 active_signal = pending_signal
                 pending_signal = None
 
+                # Negotiation level escalation — detect pushback
+                if _is_pushback(content) and negotiation_level < 3:
+                    negotiation_level += 1
+
                 # State for this response turn
                 content_type = "text"
                 last_tool_data: Optional[Any] = None
@@ -229,7 +234,7 @@ async def handle_websocket(websocket: WebSocket) -> None:
                         conversation_history=list(conversation_history),
                         on_token=on_token,
                         on_tool_start=on_tool_start,
-                        system_extra=_session_system_extra,
+                        system_extra=_session_system_extra + _negotiation_ctx(negotiation_level),
                     )
 
                     # If Bedrock path (no streaming), tokens weren't sent — send full text now
@@ -250,6 +255,7 @@ async def handle_websocket(websocket: WebSocket) -> None:
                         "session_id": session_id,
                         "content_type": content_type,
                         "data": last_tool_data,
+                        "negotiation_level": negotiation_level,
                     })
 
                 except Exception as exc:
@@ -264,6 +270,37 @@ async def handle_websocket(websocket: WebSocket) -> None:
             await websocket.send_text(json.dumps({"type": "error", "message": str(exc)}))
         except Exception:
             pass
+
+
+_PUSHBACK_PHRASES = [
+    "still too much", "too expensive", "too costly", "can you do better",
+    "not enough", "give me more", "any more discount", "kam karo", "thoda aur",
+    "aur thoda", "lower the price", "reduce price", "cheaper", "best price",
+    "final price", "mehenga", "bahut mehenga", "aur discount", "more discount",
+    "better deal", "best deal", "kuch aur", "thoda kam", "less price",
+]
+
+
+def _is_pushback(text: str) -> bool:
+    t = text.lower()
+    return any(phrase in t for phrase in _PUSHBACK_PHRASES)
+
+
+def _negotiation_ctx(level: int) -> str:
+    if level == 1:
+        return ""
+    if level == 2:
+        return (
+            "\n## ACTIVE NEGOTIATION LEVEL: 2\n"
+            "Customer pushed back. Do the 'manager check' moment — 'Let me check with my manager...' "
+            "then reveal the fully stacked deal (all offers + longest tenure). This is your Level 2 move."
+        )
+    return (
+        "\n## ACTIVE NEGOTIATION LEVEL: 3\n"
+        "Customer pushed back again. Present the best-and-final deal with 10-minute urgency. "
+        "Say 'this is the absolute best I can do — holding this rate for 10 minutes.' "
+        "If they decline, generate a 7-day payment link and say you saved the deal for them."
+    )
 
 
 _PRODUCT_NAMES: Dict[str, str] = {
