@@ -37,7 +37,8 @@ async def get_pine_labs_token() -> str:
     async with httpx.AsyncClient(timeout=PineLabsConfig.AUTH_TIMEOUT_SECONDS) as client:
         response = await client.post(
             f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.AUTH_TOKEN}",
-            json=PineLabsConfig.auth_payload(),
+            data=PineLabsConfig.auth_payload(),
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         response.raise_for_status()
         data = response.json()
