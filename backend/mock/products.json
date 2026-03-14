@@ -1,6 +1,19 @@
 {
   "products": [
     {
+      "id": "MBP-16-2024",
+      "name": "Apple MacBook Pro 16\" (M4 Pro)",
+      "price_paisa": 24990000,
+      "category": "laptops",
+      "image": "/products/mbp-16.jpg",
+      "specs": "Apple M4 Pro, 24GB RAM, 512GB SSD, 16.2\" Liquid Retina XDR",
+      "brand": "Apple",
+      "in_stock": true,
+      "rating": 4.9,
+      "review_count": 3847,
+      "accessories": ["APPLE-MAGIC-MOUSE", "APPLE-USB-HUB"]
+    },
+    {
       "id": "DELL-XPS-15",
       "name": "Dell XPS 15",
       "price_paisa": 8999900,
