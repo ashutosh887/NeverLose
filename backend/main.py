@@ -71,6 +71,12 @@ async def websocket_chat(websocket: WebSocket):
     await handle_websocket(websocket)
 
 
+@app.websocket("/ws/merchant-chat")
+async def websocket_merchant_chat(websocket: WebSocket):
+    from ws.merchant_handler import handle_merchant_websocket
+    await handle_merchant_websocket(websocket)
+
+
 @app.get("/api/events")
 async def sse_events(request: Request):
     from sse.events import event_stream

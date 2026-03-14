@@ -18,7 +18,9 @@ export type MessageContentType =
   | "stacked_deal"
   | "payment_options"
   | "qr_code"
-  | "accessory_upsell";
+  | "accessory_upsell"
+  | "countdown"
+  | "post_purchase";
 
 export interface EMIScheme {
   bank_name: string;
@@ -98,12 +100,21 @@ export interface AccessoryUpsell {
   incremental_monthly_display: string;
 }
 
+export interface PostPurchaseData {
+  productName: string;
+  amountDisplay: string;
+  monthlyDisplay: string;
+  bankName: string;
+  deliveryDate: string;
+  emiDueDate: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   contentType: MessageContentType;
-  data?: StackedDeal | EMIScheme[] | PaymentOptions | AccessoryUpsell | null;
+  data?: StackedDeal | EMIScheme[] | PaymentOptions | AccessoryUpsell | PostPurchaseData | null;
   timestamp: Date;
   isStreaming?: boolean;
 }
