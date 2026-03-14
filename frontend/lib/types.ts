@@ -9,7 +9,8 @@ export type SignalType =
   | "SCROLL_BOUNCE_DETECTED"
   | "PRICE_COPY_DETECTED"
   | "WISHLIST_INSTEAD_OF_CART"
-  | "EMI_DWELL_DETECTED";
+  | "EMI_DWELL_DETECTED"
+  | "PRICE_SHOCK_PREDICTED";
 
 export type MessageContentType =
   | "text"

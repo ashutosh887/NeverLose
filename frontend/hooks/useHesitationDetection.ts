@@ -20,10 +20,12 @@ export function useHesitationDetection({
 }: UseHesitationDetectionOptions) {
   const firedSignals = useRef<Set<SignalType>>(new Set());
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const priceShockTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cartStallTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const checkoutDropTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTouchY = useRef<number>(0);
   const lastTouchTime = useRef<number>(0);
+  const priceHoverCount = useRef<number>(0);
 
   const fire = useCallback(
     (signal: SignalType) => {
@@ -40,6 +42,16 @@ export function useHesitationDetection({
     idleTimer.current = setTimeout(() => fire("IDLE_DETECTED"), 15_000);
   }, [fire]);
 
+  // Price shock: fires after 25s of page dwell without adding to cart
+  // or after hovering near the price element 3+ times
+  const startPriceShockTimer = useCallback(() => {
+    if (priceShockTimer.current) return; // only start once
+    priceShockTimer.current = setTimeout(
+      () => fire("PRICE_SHOCK_PREDICTED"),
+      25_000
+    );
+  }, [fire]);
+
   useEffect(() => {
     // ── Return visit ────────────────────────────────────────────
     const seenKey = `nl_seen_${productId}`;
@@ -50,9 +62,28 @@ export function useHesitationDetection({
       sessionStorage.setItem(seenKey, "1");
     }
 
+    // ── Start price shock timer on page load ─────────────────
+    startPriceShockTimer();
+
     // ── Exit intent (cursor near top of viewport) ────────────
     const onMouseMove = (e: MouseEvent) => {
       resetIdle();
+
+      // Price hover: track mouse near mid-page (where price typically lives)
+      // viewport height 30–60% = price zone heuristic
+      const midZone = window.innerHeight * 0.6;
+      if (e.clientY < midZone && e.clientY > window.innerHeight * 0.2) {
+        priceHoverCount.current += 1;
+        if (priceHoverCount.current >= 3) {
+          // Clear slow timer — they're already showing price interest
+          if (priceShockTimer.current) {
+            clearTimeout(priceShockTimer.current);
+            priceShockTimer.current = null;
+          }
+          fire("PRICE_SHOCK_PREDICTED");
+        }
+      }
+
       if (e.clientY < 10 && e.movementY < 0) {
         fire("EXIT_INTENT_DETECTED");
       }
@@ -91,8 +122,9 @@ export function useHesitationDetection({
       document.removeEventListener("copy", onCopy);
       document.removeEventListener("touchmove", onTouchMove);
       if (idleTimer.current) clearTimeout(idleTimer.current);
+      if (priceShockTimer.current) clearTimeout(priceShockTimer.current);
     };
-  }, [productId, fire, resetIdle]);
+  }, [productId, fire, resetIdle, startPriceShockTimer]);
 
   // ── Cart stall (60s after add-to-cart) ───────────────────────
   useEffect(() => {

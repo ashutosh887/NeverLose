@@ -78,6 +78,17 @@ SCROLL_BOUNCE: One-line hook. Quick CTA.
 PRICE_COPY: "Comparing prices? We have exclusive Pine Labs offers you won't find elsewhere."
 WISHLIST_INSTEAD_OF_CART: "Saved to wishlist? Here's how to get it today for ₹X/month."
 EMI_DWELL: Deep-dive all EMI schemes. Explain no-cost vs. low-cost. Show tenure slider.
+PRICE_SHOCK_PREDICTED: Customer is spending significant time studying the price. Lead immediately
+  with daily cost reframe and the best stacked deal. Don't wait for them to express hesitation.
+
+## NEGOTIATION MODE
+When the customer says "can you reduce the price?", "kuch discount milega?", "give me a better deal", or similar:
+- NEVER say "I cannot change the price" or "I'm just an AI".
+- Say: "I can't touch the MRP, but I found ₹X,XXX in bank + brand offers that aren't on any other platform."
+- Lead with total effective savings as the headline: "Effectively you're paying ₹82,499 instead of ₹89,999."
+- If they push for more: offer the longest tenure to minimise monthly cost. "Want to stretch it to 24 months? That's just ₹3,750/month."
+- If they mention a competitor price: "We have exclusive subvention deals from [bank] that aren't available elsewhere — factor those in and we're actually cheaper."
+- Always close the negotiation with a call to action: "Shall I lock in this deal for you now?"
 """
 
 # ── All 11 tools ───────────────────────────────────────────────────────────────
@@ -85,8 +96,8 @@ ALL_TOOLS: List[Dict[str, Any]] = [
     {
         "name": "check_emi_options",
         "description": (
-            "Query Pine Labs EMI Calculator v3. Returns all available EMI schemes — "
-            "card EMI, debit EMI, cardless EMI (AXIO/Home Credit), brand EMI — "
+            "Query Pine Labs Affordability Suite. Returns all available EMI schemes — "
+            "card EMI (CREDIT/DEBIT), cardless EMI (AXIO/Home Credit), brand EMI — "
             "with tenure, monthly installment, daily cost, and interest savings."
         ),
         "input_schema": {
@@ -482,6 +493,7 @@ async def supervisor_agent(
     conversation_history: Optional[List[Dict[str, Any]]] = None,
     on_token: Optional[Callable] = None,
     on_tool_start: Optional[Callable] = None,
+    system_extra: Optional[str] = None,
 ) -> str:
     """
     Route message through the full Supervisor tool-use loop.
@@ -493,6 +505,7 @@ async def supervisor_agent(
         conversation_history: Prior messages (without current message)
         on_token: Async callable(str) — called for each streamed token
         on_tool_start: Async callable(tool_name, tool_input) — called before each tool
+        system_extra: Additional context appended to system prompt (timing, customer profile)
     """
     if session_id is None:
         session_id = str(uuid.uuid4())
@@ -510,8 +523,13 @@ async def supervisor_agent(
             "PRICE_COPY_DETECTED": "\n## ACTIVE: PRICE COPY\nCopied the price — comparing. Highlight exclusive Pine Labs offers.",
             "WISHLIST_INSTEAD_OF_CART": "\n## ACTIVE: WISHLIST ADD\nSaved to wishlist. Reframe as affordable today with EMI.",
             "EMI_DWELL_DETECTED": "\n## ACTIVE: EMI DWELL\n10s on EMI section. Deep-dive all schemes. Explain no-cost vs. standard.",
+            "PRICE_SHOCK_PREDICTED": "\n## ACTIVE: PRICE SHOCK PREDICTED\nCustomer has been studying the price for 25+ seconds without action. Intervene proactively. Lead with daily cost reframe and the stacked deal — don't wait for them to say it's expensive.",
         }
         system += tone_map.get(signal_type, f"\n## ACTIVE SIGNAL: {signal_type}")
+
+    # Append timing + customer context if provided by WS handler
+    if system_extra:
+        system += system_extra
 
     # Build message history
     history = list(conversation_history or [])
