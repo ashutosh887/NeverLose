@@ -67,6 +67,7 @@ export function ChatBubble({ message, index = 0, onSelectEMI, onClaimDeal, onPay
           )}
         >
           <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
             components={{
               p: ({ children }) => <p className="mb-1.5 last:mb-0 leading-relaxed">{children}</p>,
               h2: ({ children }) => <p className="font-bold text-sm text-gray-900 mt-2 mb-1">{children}</p>,
