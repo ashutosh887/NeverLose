@@ -17,6 +17,7 @@ build/
 
 # Environment — NEVER commit real credentials
 .env
+.env.live
 .env.local
 .env.*.local
 
