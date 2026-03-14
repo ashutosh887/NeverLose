@@ -1,0 +1,45 @@
+{
+  "accessories": {
+    "DELL-XPS-15": [
+      {
+        "id": "DELL-SLEEVE",
+        "name": "Dell Premier Sleeve 15",
+        "price_paisa": 299900,
+        "image": "/accessories/dell-sleeve.jpg",
+        "description": "Premium neoprene sleeve with extra accessory pocket"
+      },
+      {
+        "id": "DELL-MOUSE",
+        "name": "Dell Wireless Mouse WM326",
+        "price_paisa": 199900,
+        "image": "/accessories/dell-mouse.jpg",
+        "description": "Ergonomic wireless mouse, 3-year battery life"
+      }
+    ],
+    "SAMSUNG-S24": [
+      {
+        "id": "SAM-CASE",
+        "name": "Samsung Clear Case S24 Ultra",
+        "price_paisa": 299900,
+        "image": "/accessories/samsung-case.jpg",
+        "description": "Official Samsung clear case with S Pen slot"
+      },
+      {
+        "id": "SAM-BUDS",
+        "name": "Samsung Galaxy Buds3 Pro",
+        "price_paisa": 1499900,
+        "image": "/accessories/galaxy-buds.jpg",
+        "description": "360° audio, ANC, seamless Galaxy ecosystem integration"
+      }
+    ],
+    "LG-WASHER": [
+      {
+        "id": "LG-STAND",
+        "name": "LG Pedestal Stand WDP4V",
+        "price_paisa": 499900,
+        "image": "/accessories/lg-stand.jpg",
+        "description": "Raises washer to ergonomic height, adds storage drawer"
+      }
+    ]
+  }
+}

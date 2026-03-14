@@ -1,0 +1,38 @@
+{
+  "response_code": 1,
+  "response_message": "SUCCESS",
+  "fees": [
+    {
+      "payment_method": "upi",
+      "fee_percentage": 0.0,
+      "fee_amount_paisa": 0,
+      "display": "0% — Free",
+      "is_recommended": false
+    },
+    {
+      "payment_method": "emi_no_cost",
+      "fee_percentage": 0.0,
+      "fee_amount_paisa": 0,
+      "display": "0% — No-Cost EMI",
+      "is_recommended": true
+    },
+    {
+      "payment_method": "credit_card",
+      "fee_percentage": 1.8,
+      "fee_amount_paisa": 152998,
+      "display": "1.8%"
+    },
+    {
+      "payment_method": "debit_card",
+      "fee_percentage": 0.9,
+      "fee_amount_paisa": 76499,
+      "display": "0.9%"
+    },
+    {
+      "payment_method": "net_banking",
+      "fee_percentage": 0.9,
+      "fee_amount_paisa": 76499,
+      "display": "0.9%"
+    }
+  ]
+}

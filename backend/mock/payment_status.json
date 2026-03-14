@@ -1,0 +1,18 @@
+{
+  "response_code": 1,
+  "response_message": "SUCCESS",
+  "payment": {
+    "order_id": "NL-2026-031401",
+    "status": "SUCCESS",
+    "amount_paisa": 8499900,
+    "paid_at": "2026-03-14T10:12:34Z",
+    "payment_method": "upi",
+    "upi_id": "customer@gpay",
+    "emi_scheme": {
+      "bank": "HDFC Bank",
+      "tenure_months": 18,
+      "monthly_installment_paisa": 472217,
+      "is_no_cost": true
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "response_code": 1,
+  "response_message": "SUCCESS",
+  "qr": {
+    "qr_id": "QR-2026-031401",
+    "upi_string": "upi://pay?pa=pinelabs@ybl&pn=Pine%20Labs&am=84999.00&tr=NL-2026-031401&tn=Dell%20XPS%2015&cu=INR",
+    "amount_paisa": 8499900,
+    "expires_at": "2026-03-14T11:00:00Z",
+    "status": "PENDING",
+    "_note": "qr_image_base64 is generated dynamically by qr_code.py using the qrcode library"
+  }
+}

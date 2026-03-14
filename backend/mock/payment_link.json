@@ -1,0 +1,13 @@
+{
+  "response_code": 1,
+  "response_message": "SUCCESS",
+  "payment_link": {
+    "link_id": "PL-2026-031401",
+    "payment_link_url": "https://pay.pluralonline.com/pay/PL-2026-031401",
+    "short_url": "https://plnk.in/PL031401",
+    "amount_paisa": 8499900,
+    "expires_at": "2026-03-15T10:00:00Z",
+    "status": "CREATED",
+    "whatsapp_message": "🛍️ Your Dell XPS 15 is ready!\n\n💰 EMI: ₹4,722/month (No-Cost, 18 months)\n\n🔗 Pay securely: https://plnk.in/PL031401\n\n✅ Powered by Pine Labs"
+  }
+}

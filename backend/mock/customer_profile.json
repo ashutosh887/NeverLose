@@ -1,0 +1,42 @@
+{
+  "response_code": 1,
+  "response_message": "SUCCESS",
+  "customer": {
+    "customer_id": "CUST-RAHUL-001",
+    "name": "Rahul Sharma",
+    "phone": "9876543210",
+    "email": "rahul.sharma@gmail.com",
+    "city": "Mumbai",
+    "preferred_language": "hi",
+    "cards_on_file": [
+      {
+        "bank": "HDFC Bank",
+        "card_type": "credit",
+        "last_four": "4242",
+        "is_emi_eligible": true,
+        "eligible_tenures": [3, 6, 9, 12, 18, 24]
+      }
+    ],
+    "purchase_history": [
+      {
+        "order_id": "NL-2025-110234",
+        "product": "Samsung Galaxy S23",
+        "amount_paisa": 7499900,
+        "emi_used": true,
+        "emi_tenure_months": 12,
+        "date": "2025-11-02"
+      }
+    ],
+    "emi_preference": {
+      "preferred_tenure": 18,
+      "preferred_bank": "HDFC Bank"
+    },
+    "hesitation_history": [
+      {
+        "product_id": "DELL-XPS-15",
+        "signal": "RETURN_VISIT",
+        "first_seen": "2026-03-12T14:23:00Z"
+      }
+    ]
+  }
+}

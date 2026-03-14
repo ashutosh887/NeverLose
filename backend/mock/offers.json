@@ -1,0 +1,48 @@
+{
+  "response_code": 1,
+  "response_message": "SUCCESS",
+  "offers": [
+    {
+      "offer_id": "INST_DISC_5000",
+      "offer_type": "instant_discount",
+      "offer_name": "Instant ₹5,000 Off",
+      "discount_amount_paisa": 500000,
+      "discount_percentage": null,
+      "applicable_on": "all_cards",
+      "bank_code": null,
+      "max_discount_paisa": 500000,
+      "min_order_paisa": 3000000,
+      "valid_till": "2026-03-31",
+      "is_stackable": true,
+      "description": "Instant ₹5,000 discount on orders above ₹30,000"
+    },
+    {
+      "offer_id": "CASHBACK_5PCT_HDFC",
+      "offer_type": "cashback",
+      "offer_name": "5% Cashback on HDFC",
+      "discount_amount_paisa": null,
+      "discount_percentage": 5.0,
+      "applicable_on": "hdfc_cards",
+      "bank_code": "HDFC",
+      "max_discount_paisa": 250000,
+      "min_order_paisa": 2000000,
+      "valid_till": "2026-03-31",
+      "is_stackable": true,
+      "description": "5% cashback on HDFC credit/debit cards, up to ₹2,500"
+    },
+    {
+      "offer_id": "BRAND_SUBVENTION_DELL",
+      "offer_type": "brand_subvention",
+      "offer_name": "Dell 10% Brand Offer",
+      "discount_amount_paisa": null,
+      "discount_percentage": 10.0,
+      "applicable_on": "all_payment_methods",
+      "bank_code": null,
+      "max_discount_paisa": 1000000,
+      "min_order_paisa": 0,
+      "valid_till": "2026-03-31",
+      "is_stackable": false,
+      "description": "10% off on Dell products, up to ₹10,000"
+    }
+  ]
+}

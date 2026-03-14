@@ -1,0 +1,43 @@
+{
+  "products": [
+    {
+      "id": "DELL-XPS-15",
+      "name": "Dell XPS 15",
+      "price_paisa": 8999900,
+      "category": "laptops",
+      "image": "/products/dell-xps.jpg",
+      "specs": "Intel i7-13700H, 16GB RAM, 512GB SSD, 15.6\" OLED",
+      "brand": "Dell",
+      "in_stock": true,
+      "rating": 4.7,
+      "review_count": 2341,
+      "accessories": ["DELL-SLEEVE", "DELL-MOUSE"]
+    },
+    {
+      "id": "SAMSUNG-S24",
+      "name": "Samsung Galaxy S24 Ultra",
+      "price_paisa": 12999900,
+      "category": "phones",
+      "image": "/products/samsung-s24.jpg",
+      "specs": "Snapdragon 8 Gen 3, 12GB RAM, 256GB, 200MP Camera",
+      "brand": "Samsung",
+      "in_stock": true,
+      "rating": 4.8,
+      "review_count": 4872,
+      "accessories": ["SAM-CASE", "SAM-BUDS"]
+    },
+    {
+      "id": "LG-WASHER",
+      "name": "LG 8kg Front Load Washer",
+      "price_paisa": 4599900,
+      "category": "appliances",
+      "image": "/products/lg-washer.jpg",
+      "specs": "AI Direct Drive, Steam Wash, Wi-Fi enabled, 5-star rating",
+      "brand": "LG",
+      "in_stock": true,
+      "rating": 4.5,
+      "review_count": 1203,
+      "accessories": ["LG-STAND"]
+    }
+  ]
+}

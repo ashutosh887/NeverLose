@@ -1,0 +1,40 @@
+{
+  "response_code": 1,
+  "response_message": "SUCCESS",
+  "order": {
+    "order_id": "NL-2026-031401",
+    "merchant_order_ref": "DEMO-ORDER-001",
+    "status": "SUCCESS",
+    "amount_paisa": 8499900,
+    "original_amount_paisa": 8999900,
+    "discount_applied_paisa": 500000,
+    "created_at": "2026-03-14T10:00:00Z",
+    "paid_at": "2026-03-14T10:12:34Z",
+    "product": {
+      "id": "DELL-XPS-15",
+      "name": "Dell XPS 15",
+      "category": "laptops"
+    },
+    "customer": {
+      "name": "Rahul Sharma",
+      "phone": "9876543210",
+      "email": "rahul.sharma@gmail.com",
+      "city": "Mumbai"
+    },
+    "payment": {
+      "method": "emi",
+      "bank": "HDFC Bank",
+      "tenure_months": 18,
+      "monthly_installment_paisa": 472217,
+      "daily_cost_paisa": 15740,
+      "is_no_cost": true,
+      "total_payable_paisa": 8499900
+    },
+    "pine_labs_products_used": [
+      "EMI Calculator v3",
+      "Offer Engine",
+      "Infinity Checkout",
+      "UPI QR Code"
+    ]
+  }
+}
