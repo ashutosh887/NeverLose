@@ -45,6 +45,7 @@ export default function ProductPage() {
     onSignal: handleSignal,
     onOpenChat: handleOpenChat,
     cartHasItem,
+    chatIsOpen: chatOpen,
   });
 
   const handleAddToCart = () => {

@@ -9,6 +9,7 @@ interface UseHesitationDetectionOptions {
   onOpenChat: () => void;
   cartHasItem?: boolean;
   onCheckoutPage?: boolean;
+  chatIsOpen?: boolean;
 }
 
 export function useHesitationDetection({
@@ -17,6 +18,7 @@ export function useHesitationDetection({
   onOpenChat,
   cartHasItem = false,
   onCheckoutPage = false,
+  chatIsOpen = false,
 }: UseHesitationDetectionOptions) {
   const firedSignals = useRef<Set<SignalType>>(new Set());
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -25,10 +27,20 @@ export function useHesitationDetection({
   const checkoutDropTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTouchY = useRef<number>(0);
   const lastTouchTime = useRef<number>(0);
+  // Track distinct price-zone visits (not raw mousemove events)
   const priceHoverCount = useRef<number>(0);
+  const lastPriceHoverTime = useRef<number>(0);
+  const chatIsOpenRef = useRef(chatIsOpen);
+
+  // Keep ref in sync so event listeners see latest value without re-binding
+  useEffect(() => {
+    chatIsOpenRef.current = chatIsOpen;
+  }, [chatIsOpen]);
 
   const fire = useCallback(
     (signal: SignalType) => {
+      // Never interrupt an active conversation
+      if (chatIsOpenRef.current) return;
       if (firedSignals.current.has(signal)) return;
       firedSignals.current.add(signal);
       onSignal(signal);
@@ -39,16 +51,16 @@ export function useHesitationDetection({
 
   const resetIdle = useCallback(() => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
-    idleTimer.current = setTimeout(() => fire("IDLE_DETECTED"), 15_000);
+    // 45s idle — long enough that normal reading doesn't trigger it
+    idleTimer.current = setTimeout(() => fire("IDLE_DETECTED"), 45_000);
   }, [fire]);
 
-  // Price shock: fires after 25s of page dwell without adding to cart
-  // or after hovering near the price element 3+ times
+  // Price shock: 60s dwell OR 5 distinct visits to price zone (throttled to 1/3s)
   const startPriceShockTimer = useCallback(() => {
-    if (priceShockTimer.current) return; // only start once
+    if (priceShockTimer.current) return;
     priceShockTimer.current = setTimeout(
       () => fire("PRICE_SHOCK_PREDICTED"),
-      25_000
+      60_000
     );
   }, [fire]);
 
@@ -69,18 +81,20 @@ export function useHesitationDetection({
     const onMouseMove = (e: MouseEvent) => {
       resetIdle();
 
-      // Price hover: track mouse near mid-page (where price typically lives)
-      // viewport height 30–60% = price zone heuristic
+      // Price hover: count distinct visits to the price zone (throttle 3s apart)
       const midZone = window.innerHeight * 0.6;
       if (e.clientY < midZone && e.clientY > window.innerHeight * 0.2) {
-        priceHoverCount.current += 1;
-        if (priceHoverCount.current >= 3) {
-          // Clear slow timer — they're already showing price interest
-          if (priceShockTimer.current) {
-            clearTimeout(priceShockTimer.current);
-            priceShockTimer.current = null;
+        const now = Date.now();
+        if (now - lastPriceHoverTime.current > 3_000) {
+          lastPriceHoverTime.current = now;
+          priceHoverCount.current += 1;
+          if (priceHoverCount.current >= 5) {
+            if (priceShockTimer.current) {
+              clearTimeout(priceShockTimer.current);
+              priceShockTimer.current = null;
+            }
+            fire("PRICE_SHOCK_PREDICTED");
           }
-          fire("PRICE_SHOCK_PREDICTED");
         }
       }
 
