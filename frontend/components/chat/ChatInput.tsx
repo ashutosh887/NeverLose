@@ -45,7 +45,10 @@ export function ChatInput({
 
   const handleVoiceTranscript = (text: string) => {
     setValue(text);
-    setTimeout(() => onSend(text), 80);
+    setTimeout(() => {
+      onSend(text);
+      setValue("");
+    }, 80);
   };
 
   const canSend = value.trim().length > 0 && !disabled;

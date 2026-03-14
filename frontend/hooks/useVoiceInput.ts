@@ -9,7 +9,7 @@ interface UseVoiceInputOptions {
 
 export function useVoiceInput({
   onResult,
-  lang = "hi-IN",
+  lang = "en-IN",
 }: UseVoiceInputOptions) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
@@ -28,11 +28,9 @@ export function useVoiceInput({
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognition: any = new SpeechRecognitionImpl();
-    recognition.lang =
-      (navigator.language || "").startsWith("hi") ? "hi-IN" :
-      (navigator.language || "").startsWith("ta") ? "ta-IN" :
-      (navigator.language || "").startsWith("te") ? "te-IN" :
-      lang;
+    // Use explicitly passed lang (e.g. toggled by user); never auto-override from navigator.language
+    // because browser locale rarely matches what the user wants to speak in a demo.
+    recognition.lang = lang;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
