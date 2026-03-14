@@ -22,6 +22,7 @@ from typing import Dict, List, Optional
 
 import httpx
 
+from config.pinelabs import PineLabsConfig
 from tools.auth import get_pine_labs_token
 
 MOCK_DIR = Path(__file__).parent.parent / "mock"
@@ -54,9 +55,8 @@ async def _live_discover_offers(
     merchant_id: Optional[str],
     product_id: Optional[str],
 ) -> dict:
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
     token = await get_pine_labs_token()
-    mid = merchant_id or os.getenv("PINE_LABS_MERCHANT_ID", "")
+    mid = merchant_id or PineLabsConfig.MERCHANT_ID
 
     payload: dict = {
         "merchant_id": mid,
@@ -65,11 +65,11 @@ async def _live_discover_offers(
     if product_id:
         payload["product_id"] = product_id
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.TIMEOUT_SECONDS) as client:
         response = await client.post(
-            f"{base_url}/api/v1/offers/discover",
+            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.OFFERS_DISCOVER}",
             json=payload,
-            headers={"Authorization": f"Bearer {token}"},
+            headers=PineLabsConfig.plural_headers(token),
         )
         response.raise_for_status()
         return response.json()

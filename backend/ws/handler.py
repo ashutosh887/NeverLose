@@ -136,7 +136,7 @@ async def handle_websocket(websocket: WebSocket) -> None:
                         })
                         # Publish payment events to SSE dashboard
                         if tool_name in ("create_checkout", "generate_qr_code", "generate_payment_link"):
-                            await _publish_to_sse(result, tool_name)
+                            await _publish_to_sse(result, tool_name, tool_input, active_signal)
                     return result
 
                 sup._execute_tool = intercepting_execute  # type: ignore[assignment]
@@ -186,19 +186,87 @@ async def handle_websocket(websocket: WebSocket) -> None:
             pass
 
 
-async def _publish_to_sse(tool_result: Dict[str, Any], tool_name: str) -> None:
-    """Publish a conversion event to the SSE dashboard stream."""
+_PRODUCT_NAMES: Dict[str, str] = {
+    "DELL-XPS-15": "Dell XPS 15",
+    "SAMSUNG-S24": "Samsung Galaxy S24 Ultra",
+    "LG-WASHER": "LG 8kg Front Load Washer",
+}
+
+_CITIES = ["Mumbai", "Bengaluru", "Delhi", "Hyderabad", "Chennai", "Pune", "Kolkata", "Ahmedabad"]
+
+
+async def _publish_to_sse(
+    tool_result: Dict[str, Any],
+    tool_name: str,
+    tool_input: Optional[Dict[str, Any]] = None,
+    signal_type: Optional[str] = None,
+) -> None:
+    """Publish a ConversionEvent to the SSE dashboard stream."""
     try:
         from sse.events import publish_event
         import datetime
+        import random
+
+        # Channel
+        channel = "web"
+        if tool_name == "generate_payment_link":
+            channel = "whatsapp"
+        elif tool_name == "generate_qr_code":
+            channel = "qr"
+
+        # Amount — try tool_input first, then tool_result.order
+        amount_paisa: int = 8499900
+        if tool_input and isinstance(tool_input.get("amount_paisa"), int):
+            amount_paisa = tool_input["amount_paisa"]
+        elif isinstance(tool_result.get("order", {}).get("amount_paisa"), int):
+            amount_paisa = tool_result["order"]["amount_paisa"]
+
+        rupees = amount_paisa // 100
+        amount_display = f"₹{rupees:,}"
+
+        # Product
+        product_id = (tool_input or {}).get("product_id", "DELL-XPS-15")
+        product = _PRODUCT_NAMES.get(product_id, product_id)
+
+        # EMI scheme — best-effort extraction or sensible default
+        tenure = (tool_input or {}).get("tenure_months", 18)
+        bank = (tool_input or {}).get("bank_name", "HDFC Bank")
+        monthly_paisa = amount_paisa // max(tenure, 1)
+        emi_scheme = {
+            "bank": bank,
+            "tenure_months": tenure,
+            "monthly_display": f"₹{monthly_paisa // 100:,}",
+            "is_no_cost": True,
+        }
+
+        # Pine Labs products attributed
+        pine_labs = ["EMI Calculator v3", "Offer Engine"]
+        if tool_name == "create_checkout":
+            pine_labs.append("Infinity Checkout")
+        elif tool_name == "generate_payment_link":
+            pine_labs.append("Payment Links")
+        elif tool_name == "generate_qr_code":
+            pine_labs.append("UPI QR Code")
+
+        # Normalise signal — ensure _DETECTED suffix
+        signal = signal_type or "EXIT_INTENT_DETECTED"
+        if signal and not signal.endswith("_DETECTED") and signal != "WISHLIST_INSTEAD_OF_CART":
+            signal = signal + "_DETECTED"
 
         event = {
             "type": "conversion",
             "data": {
-                "id": str(uuid.uuid4()),
+                "id": f"SAVE-{random.randint(100, 999)}",
                 "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
-                "tool": tool_name,
-                "result_summary": {k: v for k, v in tool_result.items() if k != "qr_image_base64"},
+                "product": product,
+                "product_id": product_id,
+                "amount_paisa": amount_paisa,
+                "amount_display": amount_display,
+                "emi_scheme": emi_scheme,
+                "channel": channel,
+                "signal": signal,
+                "pine_labs_products": pine_labs,
+                "customer_city": random.choice(_CITIES),
             },
         }
         await publish_event(event)

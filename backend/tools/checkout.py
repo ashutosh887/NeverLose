@@ -13,6 +13,7 @@ from typing import Optional
 
 import httpx
 
+from config.pinelabs import PineLabsConfig
 from tools.auth import get_pine_labs_token
 
 MOCK_DIR = Path(__file__).parent.parent / "mock"
@@ -74,13 +75,11 @@ async def _live_create_checkout(
     customer_id: str,
     emi_scheme: Optional[dict],
 ) -> dict:
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
-    merchant_id = os.getenv("PINE_LABS_MERCHANT_ID", "")
     token = await get_pine_labs_token()
 
     # Step 1: Create order
     order_payload: dict = {
-        "merchant_id": merchant_id,
+        "merchant_id": PineLabsConfig.MERCHANT_ID,
         "merchant_order_ref": f"NL-{product_id}-{customer_id}",
         "order_amount": {
             "value": amount_paisa,
@@ -92,11 +91,11 @@ async def _live_create_checkout(
         order_payload["emi_tenure"] = emi_scheme.get("tenure_months")
         order_payload["payment_method"] = "EMI"
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.TIMEOUT_SECONDS) as client:
         order_resp = await client.post(
-            f"{base_url}/api/v1/orders",
+            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.ORDERS}",
             json=order_payload,
-            headers={"Authorization": f"Bearer {token}"},
+            headers=PineLabsConfig.plural_headers(token),
         )
         order_resp.raise_for_status()
         order_data = order_resp.json()
@@ -104,9 +103,9 @@ async def _live_create_checkout(
 
         # Step 2: Get Infinity Checkout URL
         checkout_resp = await client.post(
-            f"{base_url}/api/v1/checkout",
+            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.CHECKOUT}",
             json={"order_id": order_id},
-            headers={"Authorization": f"Bearer {token}"},
+            headers=PineLabsConfig.plural_headers(token),
         )
         checkout_resp.raise_for_status()
         checkout_data = checkout_resp.json()
@@ -145,13 +144,13 @@ async def check_payment_status(order_id: str) -> dict:
 
 
 async def _live_payment_status(order_id: str) -> dict:
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
     token = await get_pine_labs_token()
+    path = PineLabsConfig.Endpoints.ORDER_STATUS.format(order_id=order_id)
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.STATUS_TIMEOUT_SECONDS) as client:
         response = await client.get(
-            f"{base_url}/api/v1/orders/{order_id}/status",
-            headers={"Authorization": f"Bearer {token}"},
+            f"{PineLabsConfig.PLURAL_BASE_URL}{path}",
+            headers=PineLabsConfig.plural_headers(token),
         )
         response.raise_for_status()
         return response.json()
@@ -176,13 +175,13 @@ async def get_order_details(order_id: str) -> dict:
 
 
 async def _live_order_details(order_id: str) -> dict:
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
     token = await get_pine_labs_token()
+    path = PineLabsConfig.Endpoints.ORDER_DETAILS.format(order_id=order_id)
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.STATUS_TIMEOUT_SECONDS) as client:
         response = await client.get(
-            f"{base_url}/api/v1/orders/{order_id}",
-            headers={"Authorization": f"Bearer {token}"},
+            f"{PineLabsConfig.PLURAL_BASE_URL}{path}",
+            headers=PineLabsConfig.plural_headers(token),
         )
         response.raise_for_status()
         return response.json()

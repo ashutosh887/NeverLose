@@ -21,6 +21,8 @@ from typing import Optional
 
 import httpx
 
+from config.pinelabs import PineLabsConfig
+
 MOCK_DIR = Path(__file__).parent.parent / "mock"
 
 
@@ -102,24 +104,20 @@ async def _live_emi_options(
     merchant_id: Optional[str],
     card_type: Optional[str],
 ) -> dict:
-    base_url = os.getenv("PINE_LABS_LEGACY_URL", "https://uat.pinepg.in")
-    mid = merchant_id or os.getenv("PINE_LABS_MERCHANT_ID", "")
-    access_code = os.getenv("PINE_LABS_ACCESS_CODE", "")
+    # merchant_id arg overrides config (per-request override support)
+    if merchant_id:
+        from config.pinelabs import PineLabsConfig as _C
+        import copy
+        payload = copy.deepcopy(PineLabsConfig.legacy_emi_payload(amount_in_paisa, card_type))
+        payload["merchant_data"]["merchant_id"] = int(merchant_id)
+    else:
+        payload = PineLabsConfig.legacy_emi_payload(amount_in_paisa, card_type)
 
-    payload: dict = {
-        "merchant_data": {
-            "merchant_id": int(mid),
-            "merchant_access_code": access_code,
-            "amount": amount_in_paisa,
-        }
-    }
-    if card_type:
-        payload["card_type"] = card_type
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.TIMEOUT_SECONDS) as client:
         response = await client.post(
-            f"{base_url}/api/v3/emi/calculator",
+            f"{PineLabsConfig.LEGACY_BASE_URL}{PineLabsConfig.Endpoints.EMI_CALCULATOR}",
             json=payload,
+            headers=PineLabsConfig.legacy_headers(),
         )
         response.raise_for_status()
         return response.json()

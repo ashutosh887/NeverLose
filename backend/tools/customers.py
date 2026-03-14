@@ -13,6 +13,7 @@ from typing import Optional
 
 import httpx
 
+from config.pinelabs import PineLabsConfig
 from tools.auth import get_pine_labs_token
 
 MOCK_DIR = Path(__file__).parent.parent / "mock"
@@ -51,17 +52,18 @@ async def _live_get_customer(
     customer_id: Optional[str],
     phone: Optional[str],
 ) -> dict:
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
     token = await get_pine_labs_token()
 
     lookup = customer_id or phone
     if not lookup:
         raise ValueError("customer_id or phone required")
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    path = PineLabsConfig.Endpoints.CUSTOMERS.format(lookup=lookup)
+
+    async with httpx.AsyncClient(timeout=PineLabsConfig.STATUS_TIMEOUT_SECONDS) as client:
         response = await client.get(
-            f"{base_url}/api/v1/customers/{lookup}",
-            headers={"Authorization": f"Bearer {token}"},
+            f"{PineLabsConfig.PLURAL_BASE_URL}{path}",
+            headers=PineLabsConfig.plural_headers(token),
         )
         response.raise_for_status()
         return response.json()

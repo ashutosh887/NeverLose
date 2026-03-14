@@ -14,6 +14,7 @@ from typing import Optional
 
 import httpx
 
+from config.pinelabs import PineLabsConfig
 from tools.auth import get_pine_labs_token
 
 MOCK_DIR = Path(__file__).parent.parent / "mock"
@@ -104,7 +105,6 @@ async def _live_generate_link(
     emi_scheme: Optional[dict],
     expiry_minutes: int,
 ) -> dict:
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
     token = await get_pine_labs_token()
 
     payload: dict = {
@@ -115,11 +115,11 @@ async def _live_generate_link(
         "send_sms": False,
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.TIMEOUT_SECONDS) as client:
         response = await client.post(
-            f"{base_url}/api/v1/payment-links",
+            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.PAYMENT_LINKS}",
             json=payload,
-            headers={"Authorization": f"Bearer {token}"},
+            headers=PineLabsConfig.plural_headers(token),
         )
         response.raise_for_status()
         data = response.json()

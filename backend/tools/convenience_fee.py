@@ -13,6 +13,7 @@ from typing import List, Optional
 
 import httpx
 
+from config.pinelabs import PineLabsConfig
 from tools.auth import get_pine_labs_token
 
 MOCK_DIR = Path(__file__).parent.parent / "mock"
@@ -62,7 +63,6 @@ async def _live_convenience_fee(
     amount_paisa: int,
     payment_methods: Optional[List[str]],
 ) -> dict:
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
     token = await get_pine_labs_token()
 
     payload: dict = {
@@ -72,11 +72,11 @@ async def _live_convenience_fee(
     if payment_methods:
         payload["payment_methods"] = payment_methods
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.STATUS_TIMEOUT_SECONDS) as client:
         response = await client.post(
-            f"{base_url}/api/v1/convenience-fee",
+            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.CONVENIENCE_FEE}",
             json=payload,
-            headers={"Authorization": f"Bearer {token}"},
+            headers=PineLabsConfig.plural_headers(token),
         )
         response.raise_for_status()
         return response.json()

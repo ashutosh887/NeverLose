@@ -22,6 +22,7 @@ from urllib.parse import quote
 
 import httpx
 
+from config.pinelabs import PineLabsConfig
 from tools.auth import get_pine_labs_token
 
 MOCK_DIR = Path(__file__).parent.parent / "mock"
@@ -163,20 +164,19 @@ async def _live_generate_qr(
     product_name: str,
     merchant_id: Optional[str],
 ) -> dict:
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
     token = await get_pine_labs_token()
-    mid = merchant_id or os.getenv("PINE_LABS_MERCHANT_ID", "")
+    mid = merchant_id or PineLabsConfig.MERCHANT_ID
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.TIMEOUT_SECONDS) as client:
         response = await client.post(
-            f"{base_url}/api/v1/qr-codes",
+            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.QR_CODES}",
             json={
                 "order_id": order_id,
                 "merchant_id": mid,
                 "amount": amount_paisa,
                 "description": product_name,
             },
-            headers={"Authorization": f"Bearer {token}"},
+            headers=PineLabsConfig.plural_headers(token),
         )
         response.raise_for_status()
         data = response.json()

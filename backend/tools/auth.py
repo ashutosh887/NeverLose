@@ -7,13 +7,14 @@ The EMI Calculator v3 (legacy API) does NOT use this — it uses
 merchant_id + merchant_access_code directly in the request body.
 """
 
-import os
 from datetime import datetime, timedelta
 
 import httpx
 
+from config.pinelabs import PineLabsConfig
+
 # In-process cache — avoids re-fetching on every tool call.
-# Token TTL from Pine Labs is ~60 min; we refresh at 55 min.
+# Token TTL from Pine Labs is ~60 min; we refresh at 55 min (PineLabsConfig.TOKEN_TTL_MINUTES).
 _token_cache: dict = {"token": None, "expires_at": None}
 
 
@@ -33,25 +34,16 @@ async def get_pine_labs_token() -> str:
     ):
         return _token_cache["token"]
 
-    base_url = os.getenv("PINE_LABS_PLURAL_URL", "https://pluraluat.v2.pinepg.in")
-    client_id = os.getenv("PINE_LABS_CLIENT_ID", "")
-    client_secret = os.getenv("PINE_LABS_CLIENT_SECRET", "")
-
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=PineLabsConfig.AUTH_TIMEOUT_SECONDS) as client:
         response = await client.post(
-            f"{base_url}/api/auth/v1/token",
-            json={
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "grant_type": "client_credentials",
-            },
+            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.AUTH_TOKEN}",
+            json=PineLabsConfig.auth_payload(),
         )
         response.raise_for_status()
         data = response.json()
 
     _token_cache["token"] = data["access_token"]
-    # Refresh 5 min before actual expiry to avoid edge-case failures
-    _token_cache["expires_at"] = now + timedelta(minutes=55)
+    _token_cache["expires_at"] = now + timedelta(minutes=PineLabsConfig.TOKEN_TTL_MINUTES)
 
     return _token_cache["token"]
 
