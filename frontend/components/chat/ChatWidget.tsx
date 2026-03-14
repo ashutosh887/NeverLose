@@ -5,7 +5,6 @@ import { X, MessageCircle, ShoppingBag, Loader2 } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { ChatInput } from "./ChatInput";
 import { SocialProofBadge } from "@/components/shared/SocialProofBadge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import type { SignalType, PostPurchaseData } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -187,7 +186,7 @@ export function ChatWidget({
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 px-4 py-3 scrollbar-hide">
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3" style={{ scrollbarWidth: "none" }}>
               {messages.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
@@ -269,7 +268,7 @@ export function ChatWidget({
 
                 <div ref={messagesEndRef} />
               </div>
-            </ScrollArea>
+            </div>
 
             {/* Input */}
             <ChatInput onSend={sendMessage} disabled={isLoading} />
