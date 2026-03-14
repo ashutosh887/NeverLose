@@ -23,11 +23,95 @@ Server → Client protocol:
   { "type": "pong" }
 """
 
+import datetime
 import json
+import os
 import uuid
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
+
+_MOCK_DIR = Path(__file__).parent.parent / "mock"
+
+
+def _get_timing_context() -> str:
+    """Returns time-of-day context string for Smart Timing Engine."""
+    hour = datetime.datetime.now().hour
+    if hour < 6:
+        return "late_night"
+    elif hour < 12:
+        return "morning"
+    elif hour < 17:
+        return "afternoon"
+    elif hour < 21:
+        return "evening"
+    else:
+        return "night"
+
+
+_TIMING_TONE: Dict[str, str] = {
+    "late_night": "Customer is browsing late at night — likely serious consideration. Lead with longest EMI tenure to minimise monthly cost. Calm, no-pressure tone.",
+    "morning": "Morning browse — likely on their way to work. Be crisp, lead with the daily cost number. Quick CTA.",
+    "afternoon": "Afternoon session — customer has time. Go deeper into stacked deal breakdown and tenure options.",
+    "evening": "Evening peak shopping window. High intent. Lead with instant cashback + social proof. Create mild urgency: 'Offer ends tonight'.",
+    "night": "Night browsing — relaxed, high purchase intent. Lead with longest EMI. 'Sleep on it with this deal locked in.'",
+}
+
+
+def _load_customer_profile() -> Optional[Dict[str, Any]]:
+    """Load demo customer profile. In production this would come from Customers API."""
+    try:
+        use_mock = os.getenv("USE_MOCK", "true").lower() == "true"
+        if use_mock:
+            return json.loads((_MOCK_DIR / "customer_profile.json").read_text()).get("customer")
+        return None
+    except Exception:
+        return None
+
+
+def _build_customer_context(profile: Optional[Dict[str, Any]]) -> str:
+    """Build a customer affordability profile context block for the system prompt."""
+    if not profile:
+        return ""
+
+    lines = ["\n## CUSTOMER AFFORDABILITY PROFILE"]
+    name = profile.get("name")
+    if name:
+        lines.append(f"Customer name: {name}")
+
+    lang = profile.get("preferred_language")
+    if lang and lang != "en":
+        lines.append(f"Preferred language: {lang} — respond in this language.")
+
+    cards = profile.get("cards_on_file", [])
+    if cards:
+        card = cards[0]
+        lines.append(f"Card on file: {card.get('bank')} {card.get('card_type', 'credit')} ending {card.get('last_four', '****')}")
+        tenures = card.get("eligible_tenures", [])
+        if tenures:
+            lines.append(f"Eligible EMI tenures: {', '.join(str(t) + 'm' for t in tenures)}")
+
+    pref = profile.get("emi_preference", {})
+    if pref:
+        lines.append(f"Preferred tenure from history: {pref.get('preferred_tenure')} months via {pref.get('preferred_bank')}")
+        lines.append("When presenting EMI options, lead with their preferred tenure first.")
+
+    history = profile.get("purchase_history", [])
+    if history:
+        last = history[-1]
+        lines.append(
+            f"Last purchase: {last.get('product')} at {last.get('amount_paisa', 0) // 100:,} — "
+            f"used {'EMI' if last.get('emi_used') else 'full payment'}"
+        )
+        lines.append("Reference prior EMI behaviour: 'Based on your previous purchase, customers like you chose X months.'")
+
+    hesitation = profile.get("hesitation_history", [])
+    if hesitation:
+        product_ids = [h.get("product_id") for h in hesitation]
+        lines.append(f"Previously hesitated on: {', '.join(str(p) for p in product_ids if p)}")
+
+    return "\n".join(lines)
 
 # Tool → frontend contentType for rich UI rendering
 TOOL_CONTENT_TYPE: Dict[str, str] = {
@@ -62,6 +146,20 @@ async def handle_websocket(websocket: WebSocket) -> None:
     session_id = str(uuid.uuid4())
     conversation_history: List[Dict[str, Any]] = []
     pending_signal: Optional[str] = None
+
+    # Smart Timing Engine — built once per session at connection time
+    timing_ctx = _get_timing_context()
+    timing_note = _TIMING_TONE.get(timing_ctx, "")
+
+    # Customer Affordability Profile — loaded once per session
+    customer_profile = _load_customer_profile()
+    customer_ctx = _build_customer_context(customer_profile)
+
+    # Extra system additions (timing + customer) passed to supervisor
+    _session_system_extra = (
+        (f"\n## SMART TIMING: {timing_ctx.upper()}\n{timing_note}" if timing_note else "")
+        + customer_ctx
+    )
 
     async def send(data: Dict[str, Any]) -> None:
         try:
@@ -150,6 +248,7 @@ async def handle_websocket(websocket: WebSocket) -> None:
                         conversation_history=list(conversation_history),
                         on_token=on_token,
                         on_tool_start=on_tool_start,
+                        system_extra=_session_system_extra,
                     )
 
                     # If Bedrock path (no streaming), tokens weren't sent — send full text now
@@ -187,6 +286,7 @@ async def handle_websocket(websocket: WebSocket) -> None:
 
 
 _PRODUCT_NAMES: Dict[str, str] = {
+    "MBP-16-2024": 'Apple MacBook Pro 16"',
     "DELL-XPS-15": "Dell XPS 15",
     "SAMSUNG-S24": "Samsung Galaxy S24 Ultra",
     "LG-WASHER": "LG 8kg Front Load Washer",
