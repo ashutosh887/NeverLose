@@ -1,16 +1,19 @@
 "use client";
 import { motion } from "framer-motion";
+import { Package, CreditCard, Bell } from "lucide-react";
 import { EMICard } from "@/components/emi/EMICard";
 import { StackedDealCard } from "@/components/emi/StackedDealCard";
 import { TenureSlider } from "@/components/emi/TenureSlider";
 import { PaymentOptions } from "@/components/payment/PaymentOptions";
 import { ProductCard } from "@/components/shared/ProductCard";
+import { CountdownTimer } from "./CountdownTimer";
 import type {
   ChatMessage,
   EMIScheme,
   StackedDeal,
   PaymentOptions as POData,
   AccessoryUpsell,
+  PostPurchaseData,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +22,10 @@ interface ChatBubbleProps {
   index?: number;
   onSelectEMI?: (scheme: EMIScheme) => void;
   onClaimDeal?: () => void;
+  onPaymentSuccess?: () => void;
 }
 
-export function ChatBubble({ message, index = 0, onSelectEMI, onClaimDeal }: ChatBubbleProps) {
+export function ChatBubble({ message, index = 0, onSelectEMI, onClaimDeal, onPaymentSuccess }: ChatBubbleProps) {
   const isUser = message.role === "user";
   const staggerDelay = Math.min(index * 0.06, 0.3);
 
@@ -112,7 +116,39 @@ export function ChatBubble({ message, index = 0, onSelectEMI, onClaimDeal }: Cha
       {/* Rich content: Payment options */}
       {message.contentType === "payment_options" && message.data && (
         <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm p-3 shadow-sm">
-          <PaymentOptions data={message.data as POData} />
+          <PaymentOptions data={message.data as POData} onPaymentSuccess={onPaymentSuccess} />
+        </div>
+      )}
+
+      {/* Rich content: Deal expiry countdown (Level 3 negotiation) */}
+      {message.contentType === "countdown" && <CountdownTimer />}
+
+      {/* Rich content: Post-purchase follow-up */}
+      {message.contentType === "post_purchase" && message.data && (
+        <div className="bg-gradient-to-br from-pine-50 to-emerald-50 border border-pine-200 rounded-2xl rounded-tl-sm p-3.5 shadow-sm space-y-2">
+          <p className="text-sm font-bold text-pine-700">
+            {(message.data as PostPurchaseData).productName} confirmed!
+          </p>
+          <div className="space-y-1.5 text-xs text-gray-600">
+            <div className="flex items-center gap-2">
+              <Package className="w-3.5 h-3.5 text-pine-500 flex-shrink-0" />
+              <span>Estimated delivery: <span className="font-semibold">{(message.data as PostPurchaseData).deliveryDate}</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-3.5 h-3.5 text-pine-500 flex-shrink-0" />
+              <span>
+                First EMI of{" "}
+                <span className="font-semibold">{(message.data as PostPurchaseData).monthlyDisplay}</span>{" "}
+                due <span className="font-semibold">{(message.data as PostPurchaseData).emiDueDate}</span>{" "}
+                on your <span className="font-semibold">{(message.data as PostPurchaseData).bankName}</span> card
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Bell className="w-3.5 h-3.5 text-pine-500 flex-shrink-0" />
+              <span>I&apos;ll remind you 2 days before EMI is due</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 pt-1">Need help with anything else?</p>
         </div>
       )}
 

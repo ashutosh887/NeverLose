@@ -24,6 +24,7 @@ import {
 } from "recharts";
 import { ConversionStats } from "@/components/dashboard/ConversionStats";
 import { LiveFeed } from "@/components/dashboard/LiveFeed";
+import { MerchantCopilot } from "@/components/dashboard/MerchantCopilot";
 import { useSSE } from "@/hooks/useSSE";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -351,6 +352,40 @@ export default function DashboardPage() {
                 <p className="text-sm text-slate-600">Waiting for data...</p>
               </div>
             )}
+          </motion.div>
+        </div>
+
+        {/* ── Merchant Copilot ────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-2"
+          >
+            <MerchantCopilot />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="rounded-2xl border border-pine-500/20 p-5 flex flex-col gap-3"
+            style={{ background: "rgba(15,23,42,0.8)" }}
+          >
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Copilot can help with</p>
+            {[
+              "Sales performance & trends",
+              "Flash offer creation",
+              "EMI scheme recommendations",
+              "Cart abandonment analysis",
+              "Channel mix optimisation",
+              "Customer segment insights",
+            ].map((item) => (
+              <div key={item} className="flex items-center gap-2 text-xs text-slate-400">
+                <CheckCircle2 className="w-3.5 h-3.5 text-pine-500 flex-shrink-0" />
+                <span>{item}</span>
+              </div>
+            ))}
           </motion.div>
         </div>
 

@@ -15,6 +15,7 @@ interface QRCodeDisplayProps {
   qrBase64?: string;
   amountPaisa: number;
   orderId: string;
+  onPaymentSuccess?: () => void;
 }
 
 type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED";
@@ -55,13 +56,16 @@ function playKaching() {
   }
 }
 
-export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId, onPaymentSuccess }: QRCodeDisplayProps) {
   const [status, setStatus] = useState<PaymentStatus>("PENDING");
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
-    if (status === "SUCCESS") playKaching();
-  }, [status]);
+    if (status === "SUCCESS") {
+      playKaching();
+      onPaymentSuccess?.();
+    }
+  }, [status, onPaymentSuccess]);
 
   useEffect(() => {
     if (status !== "PENDING") return;

@@ -12,6 +12,7 @@ interface PaymentOptionsProps {
   data: PaymentOptionsData;
   productName?: string;
   monthlyDisplay?: string;
+  onPaymentSuccess?: () => void;
 }
 
 type Channel = "none" | "web" | "whatsapp" | "qr" | "call";
@@ -55,7 +56,7 @@ const OPTION_CONFIG = {
   },
 };
 
-export function PaymentOptions({ data, productName, monthlyDisplay }: PaymentOptionsProps) {
+export function PaymentOptions({ data, productName, monthlyDisplay, onPaymentSuccess }: PaymentOptionsProps) {
   const [channel, setChannel] = useState<Channel>("none");
   const [callVisible, setCallVisible] = useState(false);
 
@@ -147,6 +148,7 @@ export function PaymentOptions({ data, productName, monthlyDisplay }: PaymentOpt
                 qrBase64={data.qr.qr_image_base64}
                 amountPaisa={data.qr.amount_paisa}
                 orderId={data.order_id}
+                onPaymentSuccess={onPaymentSuccess}
               />
             </motion.div>
           )}

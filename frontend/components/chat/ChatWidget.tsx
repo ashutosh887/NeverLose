@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect, startTransition } from "react";
+import { useState, useRef, useEffect, startTransition, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle, ShoppingBag, Loader2 } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
@@ -7,8 +7,25 @@ import { ChatInput } from "./ChatInput";
 import { SocialProofBadge } from "@/components/shared/SocialProofBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import type { SignalType } from "@/lib/types";
+import type { SignalType, PostPurchaseData } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function getDeliveryDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 3);
+  return d.toLocaleDateString("en-IN", { weekday: "long", month: "short", day: "numeric" });
+}
+
+function getEmiDueDate(): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  d.setDate(15);
+  return d.toLocaleDateString("en-IN", { month: "long", day: "numeric" });
+}
 
 interface ChatWidgetProps {
   productId: string;
@@ -28,8 +45,28 @@ export function ChatWidget({
   const [isOpen, setIsOpen] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { messages, isConnected, isLoading, toolStatus, sendMessage, sendSignal, clearMessages } = useWebSocket();
+  const { messages, isConnected, isLoading, toolStatus, sendMessage, sendSignal, clearMessages, injectMessage } = useWebSocket();
   const signalFiredRef = useRef<Set<SignalType>>(new Set());
+
+  const handlePaymentSuccess = useCallback(() => {
+    const data: PostPurchaseData = {
+      productName: productName,
+      amountDisplay: "",
+      monthlyDisplay: "₹4,722",
+      bankName: "HDFC Bank",
+      deliveryDate: getDeliveryDate(),
+      emiDueDate: getEmiDueDate(),
+    };
+    injectMessage({
+      id: uid(),
+      role: "assistant",
+      content: "",
+      contentType: "post_purchase",
+      data,
+      timestamp: new Date(),
+      isStreaming: false,
+    });
+  }, [productName, injectMessage]);
 
   // Auto-open and fire signal
   useEffect(() => {
@@ -195,6 +232,7 @@ export function ChatWidget({
                     message={msg}
                     index={i}
                     onClaimDeal={() => sendMessage("Yes, I want to claim this deal")}
+                    onPaymentSuccess={handlePaymentSuccess}
                   />
                 ))}
 
