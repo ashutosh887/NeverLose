@@ -270,7 +270,9 @@ _PRODUCT_NAMES: Dict[str, str] = {
     "MBP-16-2024": 'Apple MacBook Pro 16"',
     "DELL-XPS-15": "Dell XPS 15",
     "SAMSUNG-S24": "Samsung Galaxy S24 Ultra",
-    "LG-WASHER": "LG 8kg Front Load Washer",
+    "IPHONE-15-PRO": "Apple iPhone 15 Pro Max",
+    "SONY-WH1000XM5": "Sony WH-1000XM5 Headphones",
+    "LG-WASHER": "LG WashTower",
 }
 
 _CITIES = ["Mumbai", "Bengaluru", "Delhi", "Hyderabad", "Chennai", "Pune", "Kolkata", "Ahmedabad"]
