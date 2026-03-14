@@ -4,7 +4,7 @@
 
 AI-powered cart abandonment recovery agent for Pine Labs merchants. Detects buyer hesitation in real-time and proactively presents stacked affordability deals (EMI + offers combined) before the customer leaves.
 
-**Core concept:** Bring Pine Labs' full affordability stack (EMI Calculator, Offer Engine, Payment Links) forward to the moment of hesitation — not after cart abandonment.
+**Core concept:** Bring Pine Labs' full affordability stack (Affordability Suite, Offer Engine, Hosted Checkout) forward to the moment of hesitation — not after cart abandonment.
 
 ---
 
@@ -12,28 +12,42 @@ AI-powered cart abandonment recovery agent for Pine Labs merchants. Detects buye
 
 ### Hesitation Detection — Every Signal, Not Just One
 
-NeverLose monitors a full spectrum of buyer hesitation signals and triggers the agent before the customer leaves:
+NeverLose monitors a full spectrum of buyer hesitation signals:
 
 | Signal | Trigger | What the agent does |
 |--------|---------|---------------------|
 | **Exit intent** | Cursor moves toward close/back button | Opens proactively with stacked deal + daily cost |
-| **Idle time** | No scroll/click for 15+ seconds on product page | Gentle nudge: "Still thinking? Here's what others did" |
-| **Scroll bounce** | Fast upward scroll (mobile) | Same as exit intent — agent slides in from corner |
+| **Price shock prediction** | 25s dwell on page OR 3+ hovers near price zone | Intervenes before hesitation is even expressed |
+| **Idle time** | No scroll/click for 15+ seconds | Gentle nudge: "Still thinking? Here's what others did" |
+| **Scroll bounce** | Fast upward scroll (mobile) | Agent slides in from corner |
 | **Cart stall** | Item in cart, no checkout action for 60s | "Your cart is waiting — here's the EMI breakdown" |
-| **Checkout drop** | Reached payment page, no action for 30s | Cardless EMI pivot or offer reveal at the critical moment |
+| **Checkout drop** | Reached payment page, no action for 30s | Cardless EMI pivot or offer reveal |
 | **Return visit** | Same product viewed 2+ times in session | "Back again? Here's a deal we've saved for you" |
-| **Price copy** | Customer copies the price text (clipboard event) | "Comparing prices? We can make this ₹4,722/month" |
-| **Wishlist add** | Product added to wishlist instead of cart | "Great taste — want to lock this in now with No-Cost EMI?" |
-| **Verbal hesitation** | Customer types/says "too expensive", "mehenga", "can't afford" | Immediate stacked deal response in their language |
-| **Long EMI page dwell** | 10+ seconds on EMI section without action | Tenure slider opens automatically |
+| **Price copy** | Customer copies the price text (clipboard) | "Comparing prices? We have exclusive Pine Labs offers" |
+| **Wishlist add** | Product added to wishlist instead of cart | "Lock it in today with No-Cost EMI" |
+| **Verbal hesitation** | Types "too expensive", "mehenga", "can't afford" | Immediate stacked deal in their language |
+| **Long EMI dwell** | 10+ seconds on EMI section | Tenure slider opens automatically |
+
+### Smart Features
+
+**Negotiation Mode** — When customer asks "can you reduce the price?" or "kuch discount milega?", the agent never refuses. Instead: "I can't touch the MRP, but I found ₹7,000 in bank + brand offers you won't find elsewhere."
+
+**Smart Timing Engine** — Agent tone adjusts based on time of day:
+- Night (0–6am): Longest EMI tenure, calm tone
+- Morning: Crisp daily cost number, quick CTA
+- Evening: Instant cashback + mild urgency
+
+**Customer Affordability Profile** — Agent loads purchase history, preferred tenure, card on file, and prior hesitation data. Instead of generic: "Based on your previous purchase, customers like you chose 12 months."
 
 ### The Full Flow
 
-1. **Detects hesitation** — monitors all cart signals above (idle time, exit intent, scroll behavior, cart stall, return visits)
-2. **Stacks the best deal** — chains EMI Calculator v3 + Offer Engine in real-time; brand discounts and cashback applied before EMI is computed on the net price
-3. **Presents in real-time** — surfaces "₹4,722/month (₹157/day)" before the customer bounces, with social proof and an interactive tenure slider
-4. **Closes the sale** — customer chooses their channel: web checkout, WhatsApp payment link, or UPI QR code scanned directly in chat
-5. **Smart upsell** — after EMI confirmed, suggests one complementary accessory as incremental monthly cost ("Add the sleeve for ₹167/month more")
+1. **Detects hesitation** — monitors all signals above; `PRICE_SHOCK_PREDICTED` fires before the customer even types anything
+2. **Stacks the best deal** — chains Affordability Suite + Offer Engine in real-time; brand discounts and cashback applied before EMI is computed on the net price
+3. **Presents in real-time** — surfaces "₹4,722/month (₹157/day)" with social proof and an interactive tenure slider
+4. **Negotiates if needed** — handles "can you reduce price?" with offers instead of apologies
+5. **Closes the sale** — customer chooses their channel: web checkout, WhatsApp payment link, or UPI QR code scanned directly in chat
+6. **Confetti on success** — payment confirmation with animated confetti burst
+7. **Smart upsell** — after EMI confirmed, suggests one complementary accessory ("Add the sleeve for ₹167/month more")
 
 ---
 
@@ -44,7 +58,7 @@ NeverLose monitors a full spectrum of buyer hesitation signals and triggers the 
 | Frontend | Next.js + Tailwind + Framer Motion (`:3000`) |
 | Backend | Python FastAPI (`:8000`) |
 | Real-time | WebSocket (chat) + SSE (dashboard) |
-| LLM | Claude Sonnet 4.6 via AWS Bedrock CRIS |
+| LLM | Claude Sonnet 4.6 via AWS Bedrock CRIS (`us.anthropic.claude-sonnet-4-6`) |
 
 ---
 
@@ -59,25 +73,37 @@ Supervisor Agent (Sonnet 4.6)
 └── Support Agent (Haiku 4.5)   — order tracking, refunds
 ```
 
-Agents communicate via Bedrock's multi-agent orchestration. The Supervisor routes based on intent detected in each message.
-
 ---
 
 ## Pine Labs Integration
 
-9 Pine Labs products used via the Pine Labs MCP Server:
-
 | Product | Role |
 |---------|------|
-| EMI Calculator v3 | Card EMI, debit EMI, cardless EMI, brand EMI |
+| Affordability Suite | Card EMI, debit EMI, cardless EMI, brand EMI (replaces legacy EMI Calculator) |
 | Offer Engine | Instant discounts, cashback, brand subvention |
-| Payment Gateway | Order creation |
-| Infinity Checkout | Hosted checkout URL (one API call) |
+| Hosted Checkout | Single-call checkout with all payment methods — `POST /api/checkout/v1/orders` |
 | Payment Links | Shareable links for WhatsApp / SMS |
 | UPI QR Code | Scannable in-chat QR — GPay, PhonePe, Paytm |
-| MCP Server | AI-native API execution layer |
-| Customers API | Customer profile for personalization |
+| Customers API | Customer profile for personalization (preferred tenure, card, history) |
 | Convenience Fee API | Cost comparison across payment methods |
+
+### Hosted Checkout Flow (new)
+
+```
+Bearer token → POST /api/checkout/v1/orders
+  body: { merchant_order_reference, order_amount, allowed_payment_methods: [CREDIT_EMI, DEBIT_EMI, CARD, UPI, ...], callback_url }
+  response: { token, order_id, redirect_url }
+```
+
+`redirect_url` opens Pine Labs' Infinity Checkout page — customer selects bank, tenure, and pays.
+
+### Affordability Suite (EMI discovery)
+
+```
+Bearer token → POST /api/affordability/v1/offer/discovery
+  body: { merchant_id, order_amount: { value, currency } }
+  response: offers[] with bank, tenure, rate, monthly_installment
+```
 
 ---
 
@@ -85,12 +111,12 @@ Agents communicate via Bedrock's multi-agent orchestration. The Supervisor route
 
 | Tool | Purpose |
 |------|---------|
-| `check_emi_options` | Query EMI Calculator v3 — all schemes with tenure, rate, savings |
-| `discover_offers` | Query Offer Engine — stackable discounts / cashback |
+| `check_emi_options` | Affordability Suite — all schemes with tenure, rate, savings |
+| `discover_offers` | Offer Engine — stackable discounts / cashback |
 | `calculate_stacked_deal` | Combine best EMI + offers into a single deal |
 | `search_products` | Merchant product catalog search |
 | `find_accessories` | Find complementary accessories for smart upsell / AOV optimization |
-| `create_checkout` | Create Pine Labs order + Infinity Checkout URL |
+| `create_checkout` | Hosted Checkout — single API call returns redirect_url |
 | `generate_payment_link` | Payment Link for WhatsApp / SMS delivery |
 | `generate_qr_code` | UPI QR code for in-chat payment (GPay / PhonePe / Paytm) |
 | `check_payment_status` | Poll order status |
@@ -102,76 +128,76 @@ Agents communicate via Bedrock's multi-agent orchestration. The Supervisor route
 ## Setup
 
 ```bash
+cd backend
 cp .env.example .env   # Fill in credentials
 ```
 
 Required environment variables:
 
 ```
-# Pine Labs Legacy API (EMI Calculator v3) — auth via merchant_id + access_code in body
-PINE_LABS_LEGACY_URL=https://uat.pinepg.in
-PINE_LABS_MERCHANT_ID=
-PINE_LABS_ACCESS_CODE=
-
-# Pine Labs New Plural API (Gateway, Links, QR, Checkout) — auth via Bearer token
+# Pine Labs Plural API (all endpoints) — auth via Bearer token
 PINE_LABS_PLURAL_URL=https://pluraluat.v2.pinepg.in
-PINE_LABS_CLIENT_ID=
-PINE_LABS_CLIENT_SECRET=
+PINE_LABS_MERCHANT_ID=111077
+PINE_LABS_CLIENT_ID=<from Pine Labs dashboard>
+PINE_LABS_CLIENT_SECRET=<from Pine Labs dashboard>
 
-# AWS Bedrock (provided at event)
+# AWS Bedrock (us-east-1 Workshop Studio)
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
-AWS_REGION=ap-south-1
+AWS_SESSION_TOKEN=   # required for Workshop Studio STS credentials
+AWS_REGION=us-east-1
 
-# Bedrock model IDs (Global CRIS — use global. prefix, NOT us.)
-BEDROCK_SUPERVISOR_MODEL=global.anthropic.claude-sonnet-4-6-20251001-v1:0
-BEDROCK_SUB_AGENT_MODEL=global.anthropic.claude-haiku-4-5-20251001-v1:0
+# Bedrock model IDs — us-east-1 CRIS (us. prefix)
+BEDROCK_SUPERVISOR_MODEL=us.anthropic.claude-sonnet-4-6
+BEDROCK_SUB_AGENT_MODEL=us.anthropic.claude-haiku-4-5-20251001-v1:0
 
 ANTHROPIC_API_KEY=      # fallback if Bedrock unavailable
-USE_MOCK=true           # use mock data layer — safe default for demo
+USE_MOCK=false          # true = use mock data layer (safe for offline demo)
+PAYMENT_CALLBACK_URL=http://localhost:3000/payment-complete
 ```
 
 ---
 
 ## Running Locally
 
-**Frontend**
-```bash
-npm run dev        # http://localhost:3000
-```
-
 **Backend**
 ```bash
+cd backend
+pip install -r requirements.txt
 uvicorn main:app --reload   # http://localhost:8000
+```
+
+**Frontend**
+```bash
+cd frontend
+npm install
+npm run dev   # http://localhost:3000
 ```
 
 **Tests**
 ```bash
+cd backend
 pytest tests/ -v
 pytest tests/ -k "test_emi_calculator"
 ```
+
+**Demo reset** — Press `Ctrl+Shift+R` in the chat widget to clear conversation and restart.
 
 ---
 
 ## Safety
 
-Cedar policy rules enforced at infrastructure level (AgentCore):
+Policy rules enforced before tool execution (`middleware/policy.py`):
 
 - Cannot create orders above ₹2,00,000
 - Cannot process payment without explicit `user_confirmed=true`
 - Refunds above ₹50,000 require supervisor escalation
 
-Equivalent middleware lives in `middleware/policy.py` when AgentCore is unavailable.
-
 ---
 
 ## Multilingual Support
 
-NeverLose works in 10+ Indian languages — because price shock doesn't speak only English.
-
-India has 900M+ internet users. Only ~125M are comfortable in English. An EMI agent that only works in English misses 85% of the market.
-
-Claude handles all Indian languages natively — no translation layer, no extra API, zero marginal cost. The agent detects the customer's language and responds in kind.
+Claude handles all Indian languages natively — no translation layer, no extra API, zero marginal cost.
 
 **Supported:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, Odia, English.
 
@@ -183,24 +209,22 @@ Claude handles all Indian languages natively — no translation layer, no extra 
 
 Powered by the browser's Web Speech API — no backend changes required.
 
-The customer speaks; the transcript goes through the same agent pipeline as typed text. Language is auto-detected or set from the browser locale (`hi-IN`, `ta-IN`, etc.).
-
-**Demo moment:** Speak into your phone mic in Hindi → NeverLose responds in Hindi with EMI options.
+The customer speaks; the transcript goes through the same agent pipeline as typed text. Language is auto-detected from the browser locale (`hi-IN`, `ta-IN`, etc.).
 
 ---
 
 ## Key Design Decisions
 
-- **Offer stacking is the differentiator** — always call `discover_offers` before showing EMI; combine into a single stacked deal message
+- **Price Shock Prediction** — don't wait for exit intent; intervene after 25s dwell or 3+ price hovers
+- **Negotiation Mode** — agent never says "I can't change the price"; always responds with stacked offers
+- **Smart Timing Engine** — tone adjusts by time of day (night → longest EMI, evening → cashback urgency)
+- **Customer Affordability Profile** — purchase history, preferred tenure, and card loaded at session start
+- **Offer stacking is the differentiator** — always call `discover_offers` before showing EMI; combine into single stacked deal
 - **Lead with monthly payment, not total price** — "₹4,722/month" not "₹84,999 with EMI"
-- **Daily cost reframing** — always append daily equivalent: "₹157/day — less than your Swiggy order"
-- **Exit intent is the trigger** — agent opens proactively on cursor exit or mobile scroll-up; no customer action needed
+- **Daily cost reframing** — "₹157/day — less than your Swiggy order"
 - **Social proof on first touch** — "47 customers bought this on EMI today" injected once per conversation
-- **Smart upsell** — one accessory suggested, only if its incremental EMI is <10% of base ("Add the sleeve for ₹167/month more")
-- **Three payment channels** — web checkout, WhatsApp link, UPI QR in chat; customer picks
-- **EMI tenure slider** — interactive component in chat; drag tenure, watch monthly/daily cost update live
-- **Cardless EMI pivot** — when no eligible card, pivot to AXIO / Home Credit / SBI cardless (PAN + phone only)
-- **All amounts in paisa** internally (Pine Labs API format); formatted as ₹X,XX,XXX for display
-- **Multilingual by default** — agent mirrors the customer's language; no translation layer needed
-- **Voice input via Web Speech API** — zero backend changes; transcript feeds the same agent pipeline
-- **Fallback chain:** Bedrock CRIS → Anthropic direct API → mock responses
+- **Three payment channels** — web checkout (Hosted Checkout), WhatsApp link (Payment Links), UPI QR in chat
+- **Confetti on payment success** — Framer Motion particle burst; no extra package required
+- **Cardless EMI pivot** — when no eligible card, pivot to AXIO / Home Credit (PAN + phone only)
+- **All amounts in paisa** internally; formatted as ₹X,XX,XXX for display
+- **Fallback chain:** Bedrock CRIS → Anthropic direct API → mock responses (never fail the demo)
