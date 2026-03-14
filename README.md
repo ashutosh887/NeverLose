@@ -108,14 +108,27 @@ cp .env.example .env   # Fill in credentials
 Required environment variables:
 
 ```
+# Pine Labs Legacy API (EMI Calculator v3) — auth via merchant_id + access_code in body
+PINE_LABS_LEGACY_URL=https://uat.pinepg.in
 PINE_LABS_MERCHANT_ID=
 PINE_LABS_ACCESS_CODE=
-PINE_LABS_SECRET=
+
+# Pine Labs New Plural API (Gateway, Links, QR, Checkout) — auth via Bearer token
+PINE_LABS_PLURAL_URL=https://pluraluat.v2.pinepg.in
+PINE_LABS_CLIENT_ID=
+PINE_LABS_CLIENT_SECRET=
+
+# AWS Bedrock (provided at event)
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
-AWS_REGION=
+AWS_REGION=ap-south-1
+
+# Bedrock model IDs (Global CRIS — use global. prefix, NOT us.)
+BEDROCK_SUPERVISOR_MODEL=global.anthropic.claude-sonnet-4-6-20251001-v1:0
+BEDROCK_SUB_AGENT_MODEL=global.anthropic.claude-haiku-4-5-20251001-v1:0
+
 ANTHROPIC_API_KEY=      # fallback if Bedrock unavailable
-USE_MOCK=true           # use mock data layer (no real API calls)
+USE_MOCK=true           # use mock data layer — safe default for demo
 ```
 
 ---
