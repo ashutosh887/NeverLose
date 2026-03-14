@@ -6,7 +6,7 @@ import type { SignalType, MessageContentType } from "./types";
 export type WSEvent =
   | { type: "token"; content: string }
   | { type: "message"; content: string; contentType?: MessageContentType; data?: unknown }
-  | { type: "message_end"; session_id: string }
+  | { type: "message_end"; session_id: string; negotiation_level?: number; content_type?: string; data?: unknown }
   | { type: "tool_result"; tool_name: string; data: unknown }
   | { type: "tool_event"; tool: string; content_type: string; data: unknown }
   | { type: "tool_start"; tool: string; status: string }
@@ -121,4 +121,15 @@ export function getWSClient(): NeverLoseWSClient {
     _client = new NeverLoseWSClient(config.wsUrl);
   }
   return _client;
+}
+
+// Merchant copilot singleton
+let _merchantClient: NeverLoseWSClient | null = null;
+
+export function getMerchantWSClient(): NeverLoseWSClient {
+  if (!_merchantClient) {
+    const merchantUrl = config.wsUrl.replace("/ws/chat", "/ws/merchant-chat");
+    _merchantClient = new NeverLoseWSClient(merchantUrl);
+  }
+  return _merchantClient;
 }

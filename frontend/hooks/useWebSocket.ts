@@ -70,6 +70,24 @@ export function useWebSocket() {
           }
           return prev;
         });
+        // Level 3 negotiation — inject countdown timer message
+        if (event.negotiation_level === 3) {
+          setMessages((prev) => {
+            // Only inject if no countdown already present
+            if (prev.some((m) => m.contentType === "countdown")) return prev;
+            return [
+              ...prev,
+              {
+                id: uid(),
+                role: "assistant" as const,
+                content: "",
+                contentType: "countdown" as const,
+                timestamp: new Date(),
+                isStreaming: false,
+              },
+            ];
+          });
+        }
         setToolStatus("");
         setIsLoading(false);
       } else if (event.type === "tool_start") {
@@ -136,5 +154,9 @@ export function useWebSocket() {
     setIsLoading(false);
   }, []);
 
-  return { messages, isConnected, isLoading, toolStatus, sendMessage, sendSignal, clearMessages };
+  const injectMessage = useCallback((msg: ChatMessage) => {
+    setMessages((prev) => [...prev, msg]);
+  }, []);
+
+  return { messages, isConnected, isLoading, toolStatus, sendMessage, sendSignal, clearMessages, injectMessage };
 }
