@@ -1,5 +1,6 @@
 "use client";
 
+import config from "@/config";
 import type { ConversionEvent, DashboardSeed } from "./types";
 
 export type SSEData =
@@ -13,7 +14,7 @@ export function connectSSE(
   url: string,
   listener: SSEListener
 ): () => void {
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000") + url;
+  const apiUrl = config.backendUrl + url;
   const source = new EventSource(apiUrl);
 
   source.onmessage = (event) => {

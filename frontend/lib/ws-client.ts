@@ -1,5 +1,6 @@
 "use client";
 
+import config from "@/config";
 import type { SignalType, MessageContentType } from "./types";
 
 export type WSEvent =
@@ -7,6 +8,8 @@ export type WSEvent =
   | { type: "message"; content: string; contentType?: MessageContentType; data?: unknown }
   | { type: "message_end"; session_id: string }
   | { type: "tool_result"; tool_name: string; data: unknown }
+  | { type: "tool_event"; tool: string; content_type: string; data: unknown }
+  | { type: "tool_start"; tool: string; status: string }
   | { type: "signal_ack"; signal_type: string }
   | { type: "error"; message: string }
   | { type: "ping" };
@@ -115,9 +118,7 @@ let _client: NeverLoseWSClient | null = null;
 
 export function getWSClient(): NeverLoseWSClient {
   if (!_client) {
-    const url =
-      process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8000/ws/chat";
-    _client = new NeverLoseWSClient(url);
+    _client = new NeverLoseWSClient(config.wsUrl);
   }
   return _client;
 }

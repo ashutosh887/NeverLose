@@ -12,6 +12,7 @@ export function useWebSocket() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [toolStatus, setToolStatus] = useState("");
   const client = useRef(getWSClient());
 
   useEffect(() => {
@@ -69,25 +70,29 @@ export function useWebSocket() {
           }
           return prev;
         });
+        setToolStatus("");
         setIsLoading(false);
-      } else if (event.type === "tool_result") {
-        // Rich structured result from a tool call
-        const toolName = (event as { type: "tool_result"; tool_name: string; data: unknown }).tool_name;
-        const data = (event as { type: "tool_result"; tool_name: string; data: unknown }).data;
-        let contentType: MessageContentType = "text";
-        if (toolName === "calculate_stacked_deal") contentType = "stacked_deal";
-        else if (toolName === "check_emi_options") contentType = "emi_schemes";
-        else if (toolName === "generate_qr_code") contentType = "qr_code";
-        else if (toolName === "create_checkout" || toolName === "generate_payment_link") contentType = "payment_options";
-        else if (toolName === "find_accessories") contentType = "accessory_upsell";
-
-        if (contentType !== "text") {
+      } else if (event.type === "tool_start") {
+        // Show tool running status in the widget
+        setToolStatus(event.status);
+      } else if (event.type === "tool_event") {
+        // Rich structured result from a tool call — backend sends this
+        setToolStatus("");
+        const CONTENT_TYPE_MAP: Record<string, MessageContentType> = {
+          emi_schemes: "emi_schemes",
+          stacked_deal: "stacked_deal",
+          payment_options: "payment_options",
+          qr_code: "qr_code",
+          accessory_upsell: "accessory_upsell",
+        };
+        const mappedType = CONTENT_TYPE_MAP[event.content_type];
+        if (mappedType) {
           const richMsg: ChatMessage = {
             id: uid(),
             role: "assistant",
             content: "",
-            contentType,
-            data: data as ChatMessage["data"],
+            contentType: mappedType,
+            data: event.data as ChatMessage["data"],
             timestamp: new Date(),
             isStreaming: false,
           };
@@ -125,5 +130,11 @@ export function useWebSocket() {
     client.current.sendSignal(signalType);
   }, []);
 
-  return { messages, isConnected, isLoading, sendMessage, sendSignal };
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    setToolStatus("");
+    setIsLoading(false);
+  }, []);
+
+  return { messages, isConnected, isLoading, toolStatus, sendMessage, sendSignal, clearMessages };
 }
