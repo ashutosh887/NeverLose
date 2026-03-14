@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Heart, Star, Shield, Truck, Package, ChevronRight, ExternalLink } from "lucide-react";
+import { ShoppingCart, Heart, Star, Shield, Truck, Package, ChevronRight, ExternalLink, Check } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -128,7 +128,7 @@ export function ProductDetails({
           {p.highlights.map((h, i) => (
             <li key={i} className="flex items-start gap-2.5 text-sm text-gray-600">
               <span className="w-4 h-4 rounded-full bg-pine-100 border border-pine-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-pine-600 text-[8px] font-bold">✓</span>
+                <Check className="w-2.5 h-2.5 text-pine-600" strokeWidth={3} />
               </span>
               <span className="leading-relaxed">{h}</span>
             </li>

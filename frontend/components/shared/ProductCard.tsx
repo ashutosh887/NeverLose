@@ -31,8 +31,8 @@ export function ProductCard({ accessory, onAdd }: ProductCardProps) {
       </div>
 
       {/* Image placeholder */}
-      <div className="mt-1 w-14 h-14 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center text-2xl border border-gray-100 flex-shrink-0">
-        {accessory.image || "🎒"}
+      <div className="mt-1 w-14 h-14 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center border border-gray-100 flex-shrink-0">
+        <Package className="w-6 h-6 text-gray-400" />
       </div>
 
       {/* Details */}

@@ -1,13 +1,25 @@
 "use client";
 import { motion } from "framer-motion";
-import { Zap } from "lucide-react";
+import { Laptop, Smartphone, Wind, Package, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ProductId } from "@/lib/data/products";
+
+const PRODUCT_ICONS: Record<ProductId, React.ElementType> = {
+  "MBP-16-2024": Laptop,
+  "DELL-XPS-15": Laptop,
+  "SAMSUNG-S24": Smartphone,
+  "LG-WASHER": Wind,
+};
+
+const THUMBNAIL_ICONS = [Package, Zap];
 
 interface ProductImageCardProps {
-  emoji: string;
+  productId: ProductId;
 }
 
-export function ProductImageCard({ emoji }: ProductImageCardProps) {
+export function ProductImageCard({ productId }: ProductImageCardProps) {
+  const Icon = PRODUCT_ICONS[productId];
+
   return (
     <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex flex-col items-center justify-center p-10 min-h-[360px] bg-gradient-to-br from-gray-50 to-white">
@@ -15,22 +27,22 @@ export function ProductImageCard({ emoji }: ProductImageCardProps) {
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          className="text-[120px] leading-none mb-6 select-none"
+          className="mb-6"
         >
-          {emoji}
+          <Icon className="w-32 h-32 text-gray-300" strokeWidth={1} />
         </motion.div>
         <div className="flex gap-2">
-          {[emoji, "📦", "🔌"].map((img, i) => (
+          <button
+            className="w-12 h-12 bg-white border border-pine-400 shadow-sm shadow-pine-100 rounded-xl flex items-center justify-center transition-all"
+          >
+            <Icon className="w-5 h-5 text-pine-500" />
+          </button>
+          {THUMBNAIL_ICONS.map((TIcon, i) => (
             <button
               key={i}
-              className={cn(
-                "w-12 h-12 bg-white border rounded-xl text-xl flex items-center justify-center transition-all",
-                i === 0
-                  ? "border-pine-400 shadow-sm shadow-pine-100"
-                  : "border-gray-200 hover:border-gray-300"
-              )}
+              className="w-12 h-12 bg-white border border-gray-200 hover:border-gray-300 rounded-xl flex items-center justify-center transition-all"
             >
-              {img}
+              <TIcon className="w-5 h-5 text-gray-400" />
             </button>
           ))}
         </div>

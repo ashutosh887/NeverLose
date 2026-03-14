@@ -101,7 +101,7 @@ export default function ProductPage() {
                   transition={{ duration: 0.2 }}
                   className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12"
                 >
-                  <ProductImageCard emoji={p.emoji} />
+                  <ProductImageCard productId={p.id} />
                   <ProductDetails
                     product={p}
                     isInCart={addedToCart.has(p.id)}

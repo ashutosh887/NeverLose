@@ -51,6 +51,11 @@ const SIGNAL_CONFIG: Record<
     dotColor: "bg-indigo-400",
     classes: "bg-indigo-950/60 text-indigo-300 border-indigo-800/50",
   },
+  PRICE_SHOCK_PREDICTED: {
+    label: "Price Shock",
+    dotColor: "bg-orange-400",
+    classes: "bg-orange-950/60 text-orange-300 border-orange-800/50",
+  },
 };
 
 interface SignalBadgeProps {
@@ -81,6 +86,7 @@ export function SignalBadge({ signal, variant = "dark" }: SignalBadgeProps) {
       PRICE_COPY_DETECTED: "bg-teal-50 text-teal-700 border-teal-200",
       WISHLIST_INSTEAD_OF_CART: "bg-pink-50 text-pink-700 border-pink-200",
       EMI_DWELL_DETECTED: "bg-indigo-50 text-indigo-700 border-indigo-200",
+      PRICE_SHOCK_PREDICTED: "bg-orange-50 text-orange-700 border-orange-200",
     };
     return (
       <span

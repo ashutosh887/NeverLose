@@ -1,4 +1,4 @@
-export type ProductId = "DELL-XPS-15" | "SAMSUNG-S24" | "LG-WASHER";
+export type ProductId = "MBP-16-2024" | "DELL-XPS-15" | "SAMSUNG-S24" | "LG-WASHER";
 
 export interface Product {
   id: ProductId;
@@ -11,7 +11,6 @@ export interface Product {
   discount_display: string;
   rating: number;
   review_count: number;
-  emoji: string;
   tags: readonly string[];
   emi_from: string;
   emi_daily: string;
@@ -21,8 +20,37 @@ export interface Product {
 
 export const PRODUCTS: readonly Product[] = [
   {
+    id: "MBP-16-2024",
+    tab: 'MacBook Pro 16"',
+    name: 'Apple MacBook Pro 16" (M4 Pro)',
+    subtitle: '16.2" Liquid Retina XDR · Apple M4 Pro · 24GB RAM · 512GB SSD',
+    price_paisa: 24990000,
+    price_display: "₹2,49,900",
+    original_price_display: "₹2,79,900",
+    discount_display: "11% off",
+    rating: 4.9,
+    review_count: 3847,
+    tags: ["DEMO PRODUCT", "IN STOCK"],
+    emi_from: "₹11,661",
+    emi_daily: "₹389",
+    specs: [
+      { label: "Display", value: '16.2" Liquid Retina XDR, 120Hz ProMotion, 1000 nits' },
+      { label: "Chip", value: "Apple M4 Pro — 14-core CPU, 20-core GPU" },
+      { label: "RAM", value: "24GB unified memory" },
+      { label: "Storage", value: "512GB SSD" },
+      { label: "Battery", value: "100Wh, up to 24 hrs" },
+      { label: "Ports", value: "3× Thunderbolt 5, HDMI, SD, MagSafe 3" },
+    ],
+    highlights: [
+      "M4 Pro delivers 2× faster AI processing than M3 Pro",
+      "Liquid Retina XDR — 1600 nits peak HDR, nano-texture option",
+      "24GB unified memory — runs Xcode + simulator + browser without breaking a sweat",
+      "MagSafe 3 + 3× Thunderbolt 5 — full connectivity, zero dongles needed",
+    ],
+  },
+  {
     id: "DELL-XPS-15",
-    tab: "💻 Dell XPS 15",
+    tab: "Dell XPS 15",
     name: "Dell XPS 15 (2024)",
     subtitle: '15.6" 3.5K OLED · Intel Core Ultra 7 · RTX 4060 · 32GB RAM',
     price_paisa: 8999900,
@@ -31,7 +59,6 @@ export const PRODUCTS: readonly Product[] = [
     discount_display: "18% off",
     rating: 4.7,
     review_count: 2841,
-    emoji: "💻",
     tags: ["BESTSELLER", "IN STOCK"],
     emi_from: "₹4,722",
     emi_daily: "₹157",
@@ -52,7 +79,7 @@ export const PRODUCTS: readonly Product[] = [
   },
   {
     id: "SAMSUNG-S24",
-    tab: "📱 Galaxy S24 Ultra",
+    tab: "Galaxy S24 Ultra",
     name: "Samsung Galaxy S24 Ultra",
     subtitle: '6.8" QHD+ AMOLED · Snapdragon 8 Gen 3 · 12GB RAM · 256GB',
     price_paisa: 12999900,
@@ -61,7 +88,6 @@ export const PRODUCTS: readonly Product[] = [
     discount_display: "16% off",
     rating: 4.8,
     review_count: 5123,
-    emoji: "📱",
     tags: ["HOT DEAL", "IN STOCK"],
     emi_from: "₹6,111",
     emi_daily: "₹204",
@@ -82,7 +108,7 @@ export const PRODUCTS: readonly Product[] = [
   },
   {
     id: "LG-WASHER",
-    tab: "🫧 LG WashTower",
+    tab: "LG WashTower",
     name: "LG WashTower (2024)",
     subtitle: "24kg Washer · 16kg Dryer · AI Direct Drive · Inverter",
     price_paisa: 4599900,
@@ -91,7 +117,6 @@ export const PRODUCTS: readonly Product[] = [
     discount_display: "23% off",
     rating: 4.5,
     review_count: 1230,
-    emoji: "🫧",
     tags: ["LIMITED OFFER", "IN STOCK"],
     emi_from: "₹2,167",
     emi_daily: "₹72",

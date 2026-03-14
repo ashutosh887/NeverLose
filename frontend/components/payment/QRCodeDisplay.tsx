@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import Confetti from "react-confetti";
+import Image from "next/image";
 import { CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import QRCode from "react-qr-code";
 import { Progress } from "@/components/ui/progress";
@@ -23,12 +25,19 @@ const UPI_APP_BADGES = [
   { label: "P", name: "Paytm", bg: "bg-blue-500 border-blue-600", text: "text-white", style: {} },
 ];
 
+const CORNER_POSITIONS = [
+  "top-2 left-2 border-l-2 border-t-2",
+  "top-2 right-2 border-r-2 border-t-2",
+  "bottom-2 left-2 border-l-2 border-b-2",
+  "bottom-2 right-2 border-r-2 border-b-2",
+];
+
+const MAX_WAIT = 120;
+
 export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRCodeDisplayProps) {
   const [status, setStatus] = useState<PaymentStatus>("PENDING");
   const [elapsed, setElapsed] = useState(0);
-  const MAX_WAIT = 120; // seconds
 
-  // Poll payment status
   useEffect(() => {
     if (status !== "PENDING") return;
     const interval = setInterval(async () => {
@@ -39,13 +48,12 @@ export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRC
           clearInterval(interval);
         }
       } catch {
-        // ignore network errors — keep polling
+        // network errors are ignored; polling continues
       }
     }, 3000);
     return () => clearInterval(interval);
   }, [orderId, status]);
 
-  // Progress timer
   useEffect(() => {
     if (status !== "PENDING") return;
     const timer = setInterval(() => {
@@ -67,8 +75,9 @@ export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRC
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-pine-50 to-emerald-50 rounded-2xl border-2 border-pine-200"
+        className="relative flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-pine-50 to-emerald-50 rounded-2xl border-2 border-pine-200 overflow-hidden"
       >
+        <Confetti recycle={false} numberOfPieces={200} />
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -100,27 +109,17 @@ export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRC
         Scan &amp; Pay — {formatInr(amountPaisa)}
       </p>
 
-      {/* QR Code */}
       <div className="relative p-4 bg-white border-2 border-gray-100 rounded-2xl shadow-sm">
-        {/* Corner accents */}
-        {[
-          "top-2 left-2 border-l-2 border-t-2",
-          "top-2 right-2 border-r-2 border-t-2",
-          "bottom-2 left-2 border-l-2 border-b-2",
-          "bottom-2 right-2 border-r-2 border-b-2",
-        ].map((pos, i) => (
-          <div
-            key={i}
-            className={cn("absolute w-5 h-5 border-pine-400 rounded-sm", pos)}
-          />
+        {CORNER_POSITIONS.map((pos, i) => (
+          <div key={i} className={cn("absolute w-5 h-5 border-pine-400 rounded-sm", pos)} />
         ))}
 
         {qrBase64 ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={`data:image/png;base64,${qrBase64}`}
             alt="UPI QR Code"
-            className="w-48 h-48"
+            width={192}
+            height={192}
           />
         ) : (
           <QRCode
@@ -133,7 +132,6 @@ export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRC
         )}
       </div>
 
-      {/* App badges */}
       <div className="flex items-center gap-3">
         {UPI_APP_BADGES.map((app) => (
           <div key={app.name} className="flex flex-col items-center gap-1">
@@ -152,7 +150,6 @@ export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRC
         ))}
       </div>
 
-      {/* Progress / waiting */}
       <div className="w-full space-y-1.5">
         <Progress value={progressPct} className="h-1.5" />
         <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">

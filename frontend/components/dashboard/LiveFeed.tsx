@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, MapPin } from "lucide-react";
+import { Activity, MapPin, ShoppingBag } from "lucide-react";
 import { SignalBadge } from "./SignalBadge";
 import { CHANNEL_LABELS } from "@/lib/signals";
 import type { ConversionEvent } from "@/lib/types";
@@ -11,12 +11,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface LiveFeedProps {
   conversions: ConversionEvent[];
 }
-
-const PRODUCT_EMOJI: Record<string, string> = {
-  "DELL-XPS-15": "💻",
-  "SAMSUNG-S24": "📱",
-  "LG-WASHER": "🫧",
-};
 
 const CHANNEL_BADGE: Record<string, { classes: string; label: string }> = {
   web: { classes: "bg-blue-900/60 text-blue-300 border-blue-800/50", label: "Web" },
@@ -77,7 +71,6 @@ export function LiveFeed({ conversions }: LiveFeedProps) {
             <div className="space-y-2 pr-2">
               {conversions.map((c, idx) => {
                 const channelBadge = CHANNEL_BADGE[c.channel] ?? CHANNEL_BADGE.web;
-                const emoji = PRODUCT_EMOJI[c.product_id] ?? "🛍️";
 
                 return (
                   <motion.div
@@ -85,12 +78,7 @@ export function LiveFeed({ conversions }: LiveFeedProps) {
                     initial={{ opacity: 0, y: -12, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 25,
-                      delay: idx === 0 ? 0 : 0,
-                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
                     layout
                     className={cn(
                       "group flex items-start gap-3 p-3.5 rounded-xl border transition-colors",
@@ -98,9 +86,8 @@ export function LiveFeed({ conversions }: LiveFeedProps) {
                       idx === 0 && "border-pine-800/60 bg-pine-950/30"
                     )}
                   >
-                    {/* Emoji */}
-                    <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-xl flex-shrink-0 border border-slate-700/50">
-                      {emoji}
+                    <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0 border border-slate-700/50">
+                      <ShoppingBag className="w-5 h-5 text-slate-400" />
                     </div>
 
                     {/* Main content */}
