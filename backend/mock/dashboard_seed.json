@@ -82,7 +82,7 @@
       },
       "offers_used": ["INST_DISC_5000"],
       "channel": "web",
-      "signal": "EXIT_INTENT",
+      "signal": "EXIT_INTENT_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "Offer Engine", "Infinity Checkout"],
       "customer_city": "Mumbai"
     },
@@ -102,7 +102,7 @@
       },
       "offers_used": ["CASHBACK_5PCT_HDFC"],
       "channel": "whatsapp",
-      "signal": "CART_STALL",
+      "signal": "CART_STALL_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "Offer Engine", "Payment Links"],
       "customer_city": "Bengaluru"
     },
@@ -122,7 +122,7 @@
       },
       "offers_used": [],
       "channel": "qr",
-      "signal": "CHECKOUT_DROP",
+      "signal": "CHECKOUT_DROP_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "UPI QR Code"],
       "customer_city": "Delhi"
     },
@@ -142,7 +142,7 @@
       },
       "offers_used": ["INST_DISC_5000"],
       "channel": "web",
-      "signal": "RETURN_VISIT",
+      "signal": "RETURN_VISIT_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "Offer Engine", "Infinity Checkout"],
       "customer_city": "Hyderabad"
     },
@@ -162,7 +162,7 @@
       },
       "offers_used": ["CASHBACK_5PCT_HDFC", "INST_DISC_5000"],
       "channel": "whatsapp",
-      "signal": "EXIT_INTENT",
+      "signal": "EXIT_INTENT_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "Offer Engine", "Payment Links"],
       "customer_city": "Chennai"
     },
@@ -202,7 +202,7 @@
       },
       "offers_used": [],
       "channel": "qr",
-      "signal": "CART_STALL",
+      "signal": "CART_STALL_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "UPI QR Code"],
       "customer_city": "Kolkata"
     },
@@ -222,7 +222,7 @@
       },
       "offers_used": ["BRAND_SUBVENTION_DELL"],
       "channel": "web",
-      "signal": "PRICE_COPY",
+      "signal": "PRICE_COPY_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "Offer Engine", "Infinity Checkout"],
       "customer_city": "Ahmedabad"
     },
@@ -242,7 +242,7 @@
       },
       "offers_used": ["INST_DISC_5000", "CASHBACK_5PCT_HDFC"],
       "channel": "web",
-      "signal": "EMI_DWELL",
+      "signal": "EMI_DWELL_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "Offer Engine", "Infinity Checkout"],
       "customer_city": "Mumbai"
     },
@@ -262,7 +262,7 @@
       },
       "offers_used": [],
       "channel": "voice",
-      "signal": "EXIT_INTENT",
+      "signal": "EXIT_INTENT_DETECTED",
       "pine_labs_products": ["EMI Calculator v3", "Infinity Checkout"],
       "customer_city": "Jaipur"
     }
