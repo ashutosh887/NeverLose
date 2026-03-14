@@ -18,22 +18,19 @@ Tool-use loop:
 
 import json
 import logging
-import os
 import uuid
 from typing import Any, Callable, Coroutine, Dict, List, Optional
 
+from config.aws import AWSConfig
+from config.anthropic_config import AnthropicConfig
+
 logger = logging.getLogger(__name__)
 
-# ── Model IDs ─────────────────────────────────────────────────────────────────
-BEDROCK_SUPERVISOR_MODEL = os.getenv(
-    "BEDROCK_SUPERVISOR_MODEL", "global.anthropic.claude-sonnet-4-6-v1"
-)
-BEDROCK_SUB_AGENT_MODEL = os.getenv(
-    "BEDROCK_SUB_AGENT_MODEL", "global.anthropic.claude-haiku-4-5-20251001-v1:0"
-)
-ANTHROPIC_SUPERVISOR_MODEL = "claude-sonnet-4-6-20251001"
-ANTHROPIC_SUB_AGENT_MODEL = "claude-haiku-4-5-20251001"
-AWS_REGION = os.getenv("AWS_REGION", "ap-south-1")
+# ── Model IDs (sourced from config) ───────────────────────────────────────────
+BEDROCK_SUPERVISOR_MODEL = AWSConfig.BEDROCK_SUPERVISOR_MODEL
+BEDROCK_SUB_AGENT_MODEL = AWSConfig.BEDROCK_SUB_AGENT_MODEL
+ANTHROPIC_SUPERVISOR_MODEL = AnthropicConfig.SUPERVISOR_MODEL
+ANTHROPIC_SUB_AGENT_MODEL = AnthropicConfig.SUB_AGENT_MODEL
 
 # ── Base system prompt ─────────────────────────────────────────────────────────
 BASE_SYSTEM = """You are NeverLose — an AI cart-recovery agent for Pine Labs merchants.
@@ -258,15 +255,13 @@ ALL_TOOLS: List[Dict[str, Any]] = [
 
 # ── Client factories ───────────────────────────────────────────────────────────
 def _bedrock_client():
-    """AnthropicBedrock client — same API as AsyncAnthropic, routes through Bedrock."""
-    import anthropic
-    return anthropic.AsyncAnthropicBedrock(aws_region=AWS_REGION)
+    """AnthropicBedrock client — routes through AWS Bedrock CRIS."""
+    return AWSConfig.bedrock_client()
 
 
 def _direct_client():
-    """Anthropic direct API client."""
-    import anthropic
-    return anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+    """Anthropic direct API client — fallback when Bedrock unavailable."""
+    return AnthropicConfig.direct_client()
 
 
 # ── Tool executor ──────────────────────────────────────────────────────────────

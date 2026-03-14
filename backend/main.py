@@ -17,6 +17,8 @@ from fastapi import FastAPI, WebSocket, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from config.aws import AWSConfig
+
 load_dotenv()
 
 
@@ -54,7 +56,7 @@ async def health():
     return {
         "status": "ok",
         "use_mock": os.getenv("USE_MOCK", "false").lower() == "true",
-        "region": os.getenv("AWS_REGION", "ap-south-1"),
+        "region": AWSConfig.REGION,
     }
 
 
@@ -80,6 +82,24 @@ async def sse_events(request: Request):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+# ── Payment Status ────────────────────────────────────────────────
+
+@app.get("/api/payment-status/{order_id}")
+async def payment_status(order_id: str):
+    """Poll UPI/payment status — used by QRCodeDisplay to check if payment completed."""
+    use_mock = os.getenv("USE_MOCK", "false").lower() == "true"
+    if use_mock:
+        from pathlib import Path
+        import json
+        mock_file = Path(__file__).parent / "mock" / "payment_status.json"
+        return json.loads(mock_file.read_text())
+    try:
+        from integrations.pine_labs import check_payment_status as pl_check
+        return await pl_check(order_id)
+    except Exception:
+        return {"payment": {"order_id": order_id, "status": "PENDING"}}
 
 
 # ── REST Chat Fallback ────────────────────────────────────────────
