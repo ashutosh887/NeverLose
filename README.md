@@ -154,7 +154,37 @@ BEDROCK_SUB_AGENT_MODEL=us.anthropic.claude-haiku-4-5-20251001-v1:0
 ANTHROPIC_API_KEY=      # fallback if Bedrock unavailable
 USE_MOCK=false          # true = use mock data layer (safe for offline demo)
 PAYMENT_CALLBACK_URL=http://localhost:3000/payment-complete
+
+# MongoDB Atlas
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?appName=NeverLose
+MONGODB_DB=neverlose
 ```
+
+---
+
+## Database
+
+NeverLose uses MongoDB Atlas to store the product catalog, customer profiles, and conversion history. The backend falls back to mock JSON files if MongoDB is unavailable — the demo never breaks.
+
+**Collections:**
+
+| Collection | Contents |
+|------------|----------|
+| `products` | Product catalog with specs, highlights, EMI display |
+| `accessories` | Accessories per product for smart upsell |
+| `customer_profiles` | Customer affordability profiles (card, tenure preference, history) |
+| `conversions` | Live + historical conversion events for the dashboard |
+| `daily_summaries` | Per-day GMV recovered and top signal |
+| `weekly_stats` | 7-day aggregate for dashboard header |
+
+**Seed the database:**
+
+```bash
+cd backend
+python -m db.seed
+```
+
+**Health check** (`GET /health`) reports MongoDB and Pine Labs auth status in real-time.
 
 ---
 
@@ -164,6 +194,7 @@ PAYMENT_CALLBACK_URL=http://localhost:3000/payment-complete
 ```bash
 cd backend
 pip install -r requirements.txt
+python -m db.seed          # seed MongoDB (one-time)
 uvicorn main:app --reload   # http://localhost:8000
 ```
 
