@@ -3,20 +3,18 @@ AWS Bedrock Configuration
 ==========================
 
 NeverLose uses Claude Sonnet 4.6 (Supervisor) and Claude Haiku 4.5 (sub-agents)
-via AWS Bedrock with Global CRIS (Cross-Region Inference Service).
+via AWS Bedrock with CRIS (Cross-Region Inference Service).
 
-CRIS prefix "global." routes to the nearest available region automatically.
-This prevents capacity-related failures at demo time vs. a fixed us-east-1 endpoint.
+CRIS model ID prefix depends on region:
+  us-east-1 / us-west-2  → "us." prefix   e.g. us.anthropic.claude-sonnet-4-6-20251001-v1:0
+  ap-south-1 (Mumbai)    → "global." prefix (routes to nearest available)
 
-To switch to direct regional inference (slightly faster, no CRIS overhead):
-  BEDROCK_SUPERVISOR_MODEL = us.anthropic.claude-sonnet-4-6-20251001-v1:0
-  BEDROCK_SUB_AGENT_MODEL  = us.anthropic.claude-haiku-4-5-20251001-v1:0
+Workshop Studio (PineLabs Hackathon) uses us-east-1 with TEMPORARY credentials.
+Temporary credentials include AWS_SESSION_TOKEN — must be passed explicitly to
+AsyncAnthropicBedrock (boto3 does not auto-read it from env in all SDK versions).
 
-Region: ap-south-1 (Mumbai) — lowest latency for the Indian demo context.
-Override with AWS_REGION env var if demoing from a different region.
-
-Credentials: loaded automatically by the Anthropic SDK from env vars
-  AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (or ~/.aws/credentials at the venue).
+Credentials expire — if you get auth errors, refresh from Workshop Studio and
+update AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN in .env.
 """
 
 import os
@@ -24,22 +22,27 @@ import os
 
 class AWSConfig:
     # ── Region ────────────────────────────────────────────────────────────────
-    # ap-south-1 = Mumbai; use us-east-1 if Bedrock CRIS not available in ap-south-1
-    REGION: str = os.getenv("AWS_REGION", "ap-south-1")
+    # Workshop Studio restricts to us-east-1. Change to ap-south-1 for prod.
+    REGION: str = os.getenv("AWS_REGION", "us-east-1")
 
-    # ── Credentials (read by anthropic SDK / boto3 from env automatically) ────
+    # ── Credentials ───────────────────────────────────────────────────────────
     ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID", "")
     SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    # SESSION_TOKEN is required for Workshop Studio temporary credentials.
+    # Leave empty for long-term IAM credentials (production).
+    SESSION_TOKEN: str = os.getenv("AWS_SESSION_TOKEN", "")
 
-    # ── Bedrock Model IDs — Global CRIS ───────────────────────────────────────
-    # Global CRIS (recommended for demos — resilient across regions):
+    # ── Bedrock Model IDs ─────────────────────────────────────────────────────
+    # us-east-1 → "us." CRIS prefix
+    # ap-south-1 → "global." CRIS prefix
+    # Set BEDROCK_SUPERVISOR_MODEL / BEDROCK_SUB_AGENT_MODEL in .env to override.
     BEDROCK_SUPERVISOR_MODEL: str = os.getenv(
         "BEDROCK_SUPERVISOR_MODEL",
-        "global.anthropic.claude-sonnet-4-6-v1",
+        "us.anthropic.claude-sonnet-4-6-20251001-v1:0",
     )
     BEDROCK_SUB_AGENT_MODEL: str = os.getenv(
         "BEDROCK_SUB_AGENT_MODEL",
-        "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+        "us.anthropic.claude-haiku-4-5-20251001-v1:0",
     )
 
     # ── Inference parameters ──────────────────────────────────────────────────
@@ -55,7 +58,17 @@ class AWSConfig:
     def bedrock_client(cls):
         """
         Returns an AsyncAnthropicBedrock client.
-        Import anthropic here to avoid hard dependency if Bedrock isn't available.
+
+        Passes aws_session_token explicitly — required for Workshop Studio
+        temporary credentials (STS tokens). Safe to pass empty string for
+        long-term IAM credentials (SDK ignores it when empty).
         """
         import anthropic
-        return anthropic.AsyncAnthropicBedrock(aws_region=cls.REGION)
+        kwargs = {
+            "aws_region": cls.REGION,
+            "aws_access_key": cls.ACCESS_KEY_ID,
+            "aws_secret_key": cls.SECRET_ACCESS_KEY,
+        }
+        if cls.SESSION_TOKEN:
+            kwargs["aws_session_token"] = cls.SESSION_TOKEN
+        return anthropic.AsyncAnthropicBedrock(**kwargs)

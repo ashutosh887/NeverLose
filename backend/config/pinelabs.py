@@ -25,6 +25,7 @@ Credentials are sourced from .env — never hardcode them here.
 """
 
 import os
+from typing import Optional
 
 
 class PineLabsConfig:
@@ -109,7 +110,7 @@ class PineLabsConfig:
         }
 
     @classmethod
-    def legacy_emi_payload(cls, amount_paisa: int, card_type: str | None = None) -> dict:
+    def legacy_emi_payload(cls, amount_paisa: int, card_type: Optional[str] = None) -> dict:
         """Request body for POST /api/v3/emi/calculator."""
         payload: dict = {
             "merchant_data": {
