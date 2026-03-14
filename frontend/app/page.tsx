@@ -162,7 +162,7 @@ export default function ProductPage() {
           >
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
             <span className="text-xs font-semibold text-amber-800">
-              TechMart customers saved <span className="text-amber-600">₹14.2L</span> with Priya this week
+              TechMart customers saved <span className="text-amber-600">₹14.2L</span> with AI this week
             </span>
           </motion.div>
         </motion.div>

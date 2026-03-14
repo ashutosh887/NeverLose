@@ -87,7 +87,7 @@ export function MerchantCopilot() {
           <Bot className="w-3.5 h-3.5 text-pine-400" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-200 leading-tight">Priya — Merchant Copilot</p>
+          <p className="text-sm font-semibold text-slate-200 leading-tight">Merchant Copilot</p>
           <p className="text-[10px] text-slate-500">Ask about performance, create offers</p>
         </div>
         <span className={cn(

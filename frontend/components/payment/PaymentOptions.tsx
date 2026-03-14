@@ -48,7 +48,7 @@ const OPTION_CONFIG = {
   call: {
     icon: Phone,
     label: "Call Me",
-    sub: "Priya will call",
+    sub: "We'll call you",
     selected: "border-pine-400 bg-pine-50",
     idle: "border-gray-100 bg-white hover:border-pine-200 hover:bg-pine-50",
     iconBg: "bg-pine-100",

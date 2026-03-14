@@ -164,7 +164,7 @@ export function ChatWidget({
                 P
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm leading-tight">Priya · TechMart</p>
+                <p className="font-semibold text-sm leading-tight">TechMart · AI</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span
                     className={cn(
@@ -198,7 +198,7 @@ export function ChatWidget({
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-800 mb-1">
-                      Hey! I&apos;m Priya from TechMart
+                      Hey! I&apos;m your TechMart shopping assistant
                     </p>
                     <p className="text-xs text-gray-400 leading-relaxed max-w-[240px]">
                       I&apos;ve found a great EMI deal on {productName}. Let me show you!
