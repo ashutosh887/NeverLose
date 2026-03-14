@@ -30,6 +30,7 @@ yarn-error.log*
 .pnpm-debug.log*
 .yarn/cache
 .yarn/unplugged
+*.tsbuildinfo
 
 # IDE
 .vscode/
