@@ -34,9 +34,34 @@ const CORNER_POSITIONS = [
 
 const MAX_WAIT = 120;
 
+function playKaching() {
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new AudioCtx();
+    [[880, 0], [1100, 0.13], [1320, 0.26]].forEach(([freq, delay]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = "sine";
+      gain.gain.setValueAtTime(0.35, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.18);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.18);
+    });
+  } catch {
+    // audio not supported
+  }
+}
+
 export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRCodeDisplayProps) {
   const [status, setStatus] = useState<PaymentStatus>("PENDING");
   const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (status === "SUCCESS") playKaching();
+  }, [status]);
 
   useEffect(() => {
     if (status !== "PENDING") return;

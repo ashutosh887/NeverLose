@@ -148,12 +148,31 @@ export default function ProductPage() {
           ))}
         </Tabs>
 
+        {/* Savings ticker */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8 flex items-center justify-center"
+        >
+          <motion.div
+            animate={{ scale: [1, 1.015, 1] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full shadow-sm"
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
+            <span className="text-xs font-semibold text-amber-800">
+              TechMart customers saved <span className="text-amber-600">₹14.2L</span> with Priya this week
+            </span>
+          </motion.div>
+        </motion.div>
+
         {/* Social proof bar */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-10 bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm"
+          className="mt-4 bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm"
         >
           <SocialProofBadge />
           <button

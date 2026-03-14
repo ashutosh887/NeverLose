@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, startTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, Zap, Loader2 } from "lucide-react";
+import { X, MessageCircle, ShoppingBag, Loader2 } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { ChatInput } from "./ChatInput";
 import { SocialProofBadge } from "@/components/shared/SocialProofBadge";
@@ -124,11 +124,11 @@ export function ChatWidget({
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3.5 bg-gradient-to-r from-pine-500 to-pine-600 text-white flex-shrink-0">
-              <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
-                <Zap className="w-4.5 h-4.5" />
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-white/30 to-white/10 border border-white/20 flex items-center justify-center font-bold text-base">
+                P
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm leading-tight">NeverLose Assistant</p>
+                <p className="font-semibold text-sm leading-tight">Priya · TechMart</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span
                     className={cn(
@@ -137,7 +137,7 @@ export function ChatWidget({
                     )}
                   />
                   <p className="text-xs text-white/80">
-                    {isConnected ? "Live · Pine Labs AI" : "Connecting..."}
+                    {isConnected ? "Online · Pine Labs AI" : "Connecting..."}
                   </p>
                 </div>
               </div>
@@ -157,25 +157,24 @@ export function ChatWidget({
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col items-center text-center py-6 gap-3"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-pine-100 to-emerald-100 rounded-2xl flex items-center justify-center text-3xl border border-pine-200">
-                    🛍️
+                  <div className="w-16 h-16 bg-gradient-to-br from-pine-100 to-emerald-100 rounded-2xl flex items-center justify-center border border-pine-200">
+                    <ShoppingBag className="w-8 h-8 text-pine-500" strokeWidth={1.5} />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-800 mb-1">
-                      Get the best EMI deal on {productName}
+                      Hey! I&apos;m Priya from TechMart
                     </p>
                     <p className="text-xs text-gray-400 leading-relaxed max-w-[240px]">
-                      I can stack offers + EMI to save you more. Ask me anything!
+                      I&apos;ve found a great EMI deal on {productName}. Let me show you!
                     </p>
                   </div>
                   <SocialProofBadge />
 
-                  {/* Quick prompts */}
                   <div className="flex flex-wrap gap-1.5 justify-center mt-1">
                     {[
-                      "Show me EMI options",
-                      "Best offer today?",
-                      "No-Cost EMI?",
+                      "What EMI options do I have?",
+                      "Show me the best deal",
+                      "Can I get No-Cost EMI?",
                     ].map((prompt) => (
                       <button
                         key={prompt}

@@ -13,7 +13,7 @@ interface ChatInputProps {
 export function ChatInput({
   onSend,
   disabled,
-  placeholder = "Ask about EMI, offers, or just say hi...",
+  placeholder = "Ask about EMI, offers, deals...",
 }: ChatInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
