@@ -25,6 +25,8 @@ Credentials are sourced from .env — never hardcode them here.
 """
 
 import os
+import uuid
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -55,19 +57,30 @@ class PineLabsConfig:
     class Endpoints:
         """All Pine Labs API endpoint paths (relative, append to base URL)."""
 
-        # Legacy
+        # Legacy (EMI Calculator v3 — requires merchant_access_code, unused if ACCESS_CODE empty)
         EMI_CALCULATOR = "/api/v3/emi/calculator"
 
         # Plural — Auth
         AUTH_TOKEN = "/api/auth/v1/token"
 
-        # Plural — Payments
+        # Plural — Hosted Checkout (single-call: creates order + returns redirect_url)
+        # POST body: merchant_order_reference, order_amount, allowed_payment_methods,
+        #            integration_mode, callback_url, purchase_details
+        # Response:  token, order_id, redirect_url, response_code, response_message
+        HOSTED_CHECKOUT = "/api/checkout/v1/orders"
+
+        # Plural — Affordability Suite (EMI offer discovery, no merchant_access_code needed)
+        # POST /api/affordability/v1/offer/discovery — card-based EMI offers
+        # POST /api/affordability/v1/offer/discovery/cardless — AXIO/Home Credit etc.
+        AFFORDABILITY_OFFER_DISCOVERY = "/api/affordability/v1/offer/discovery"
+        AFFORDABILITY_OFFER_DISCOVERY_CARDLESS = "/api/affordability/v1/offer/discovery/cardless"
+
+        # Plural — Orders / Status (used for payment status polling + order details)
         ORDERS = "/api/v1/orders"
         ORDER_STATUS = "/api/v1/orders/{order_id}/status"  # GET, format before use
         ORDER_DETAILS = "/api/v1/orders/{order_id}"        # GET, format before use
-        CHECKOUT = "/api/v1/checkout"
 
-        # Plural — Affordability
+        # Plural — Affordability Suite — legacy path (kept for offer_engine.py fallback)
         OFFERS_DISCOVER = "/api/v1/offers/discover"
         CONVENIENCE_FEE = "/api/v1/convenience-fee"
 
@@ -93,11 +106,16 @@ class PineLabsConfig:
         """
         Headers for all Plural API calls.
         Always call get_pine_labs_token() from tools/auth.py to get the token.
+
+        Request-Timestamp and Request-ID are optional per Pine Labs docs but
+        included here for better traceability and API hygiene.
         """
         return {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "Request-Timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
+            "Request-ID": str(uuid.uuid4()),
         }
 
     @classmethod

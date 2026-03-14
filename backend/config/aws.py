@@ -36,9 +36,10 @@ class AWSConfig:
     # us-east-1 → "us." CRIS prefix
     # ap-south-1 → "global." CRIS prefix
     # Set BEDROCK_SUPERVISOR_MODEL / BEDROCK_SUB_AGENT_MODEL in .env to override.
+    # Verified working in us-east-1 Workshop Studio account (March 2026)
     BEDROCK_SUPERVISOR_MODEL: str = os.getenv(
         "BEDROCK_SUPERVISOR_MODEL",
-        "us.anthropic.claude-sonnet-4-6-20251001-v1:0",
+        "us.anthropic.claude-sonnet-4-6",
     )
     BEDROCK_SUB_AGENT_MODEL: str = os.getenv(
         "BEDROCK_SUB_AGENT_MODEL",
