@@ -1,6 +1,10 @@
 """
 Tools: create_checkout, check_payment_status, get_order_details
-Wraps Pine Labs Payment Gateway + Infinity Checkout (new Plural API).
+Wraps Pine Labs Hosted Checkout API (POST /api/checkout/v1/orders).
+
+Flow: single API call → returns token + order_id + redirect_url.
+      redirect_url is the Infinity Checkout page where customer pays.
+      allowed_payment_methods includes CREDIT_EMI / DEBIT_EMI for EMI flow.
 
 SAFETY: create_checkout enforces user_confirmed=True.
         Policy middleware (middleware/policy.py) provides a second check.
@@ -77,50 +81,49 @@ async def _live_create_checkout(
 ) -> dict:
     token = await get_pine_labs_token()
 
-    # Step 1: Create order
-    order_payload: dict = {
-        "merchant_id": PineLabsConfig.MERCHANT_ID,
-        "merchant_order_ref": f"NL-{product_id}-{customer_id}",
+    # Hosted Checkout — single API call.
+    # Pine Labs returns redirect_url which opens Infinity Checkout page.
+    # allowed_payment_methods always includes EMI options; Pine Labs shows
+    # the EMI UI inline on the checkout page.
+    payment_methods = ["CREDIT_EMI", "DEBIT_EMI", "CARD", "UPI", "NETBANKING", "WALLET"]
+
+    payload: dict = {
+        "merchant_order_reference": f"NL-{product_id}-{customer_id}",
         "order_amount": {
             "value": amount_paisa,
             "currency": "INR",
         },
-        "customer_id": customer_id,
+        "allowed_payment_methods": payment_methods,
+        "integration_mode": "REDIRECT",
+        "callback_url": os.getenv("PAYMENT_CALLBACK_URL", "http://localhost:3000/payment-complete"),
+        "purchase_details": {
+            "customer": {
+                "country_code": "+91",
+            }
+        },
     }
-    if emi_scheme:
-        order_payload["emi_tenure"] = emi_scheme.get("tenure_months")
-        order_payload["payment_method"] = "EMI"
 
     async with httpx.AsyncClient(timeout=PineLabsConfig.TIMEOUT_SECONDS) as client:
-        order_resp = await client.post(
-            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.ORDERS}",
-            json=order_payload,
+        resp = await client.post(
+            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.HOSTED_CHECKOUT}",
+            json=payload,
             headers=PineLabsConfig.plural_headers(token),
         )
-        order_resp.raise_for_status()
-        order_data = order_resp.json()
-        order_id = order_data.get("order_id") or order_data.get("id")
-
-        # Step 2: Get Infinity Checkout URL
-        checkout_resp = await client.post(
-            f"{PineLabsConfig.PLURAL_BASE_URL}{PineLabsConfig.Endpoints.CHECKOUT}",
-            json={"order_id": order_id},
-            headers=PineLabsConfig.plural_headers(token),
-        )
-        checkout_resp.raise_for_status()
-        checkout_data = checkout_resp.json()
+        resp.raise_for_status()
+        data = resp.json()
 
     return {
-        "response_code": 1,
-        "response_message": "SUCCESS",
+        "response_code": 1 if data.get("response_code") == 200 else 0,
+        "response_message": data.get("response_message", "SUCCESS"),
         "order": {
-            "order_id": order_id,
+            "order_id": data.get("order_id"),
             "status": "CREATED",
             "amount_paisa": amount_paisa,
         },
         "checkout": {
-            "checkout_url": checkout_data.get("checkout_url"),
-            "checkout_token": checkout_data.get("token"),
+            # redirect_url from Pine Labs = Infinity Checkout page URL
+            "checkout_url": data.get("redirect_url"),
+            "checkout_token": data.get("token"),
         },
     }
 
