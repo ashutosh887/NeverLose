@@ -59,13 +59,22 @@ _TIMING_TONE: Dict[str, str] = {
 }
 
 
-def _load_customer_profile() -> Optional[Dict[str, Any]]:
-    """Load demo customer profile. In production this would come from Customers API."""
+async def _load_customer_profile() -> Optional[Dict[str, Any]]:
+    """Load demo customer profile from MongoDB, falling back to mock JSON."""
     try:
-        use_mock = os.getenv("USE_MOCK", "true").lower() == "true"
-        if use_mock:
-            return json.loads((_MOCK_DIR / "customer_profile.json").read_text()).get("customer")
-        return None
+        from db.client import get_db
+        db = get_db()
+        if db is not None:
+            doc = await db["customer_profiles"].find_one(
+                {"_id": "CUST-RAHUL-001"}, {"_id": 0}
+            )
+            if doc:
+                return doc
+    except Exception:
+        pass
+
+    try:
+        return json.loads((_MOCK_DIR / "customer_profile.json").read_text()).get("customer")
     except Exception:
         return None
 
@@ -152,7 +161,7 @@ async def handle_websocket(websocket: WebSocket) -> None:
     timing_note = _TIMING_TONE.get(timing_ctx, "")
 
     # Customer Affordability Profile — loaded once per session
-    customer_profile = _load_customer_profile()
+    customer_profile = await _load_customer_profile()
     customer_ctx = _build_customer_context(customer_profile)
 
     # Extra system additions (timing + customer) passed to supervisor

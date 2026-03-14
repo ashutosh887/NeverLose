@@ -1,8 +1,8 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { AnimatePresence } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Navbar } from "@/components/layout/Navbar";
 import { ChatWidget } from "@/components/chat/ChatWidget";
@@ -22,6 +22,18 @@ export default function ProductPage() {
   const [wishlist, setWishlist] = useState<Set<ProductId>>(new Set());
   const [triggerSignal, setTriggerSignal] = useState<SignalType | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const visibleProducts = useMemo(() => {
+    if (!search.trim()) return PRODUCTS;
+    const q = search.toLowerCase();
+    return PRODUCTS.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.tab.toLowerCase().includes(q) ||
+        p.tags.some((t) => t.toLowerCase().includes(q))
+    );
+  }, [search]);
 
   const product = PRODUCTS.find((p) => p.id === activeProductId)!;
 
@@ -78,17 +90,31 @@ export default function ProductPage() {
           onValueChange={(v) => setActiveProductId(v as ProductId)}
           className="space-y-8"
         >
-          <TabsList className="bg-white border border-gray-200 p-1 rounded-2xl shadow-sm h-auto flex-wrap gap-1">
-            {PRODUCTS.map((p) => (
-              <TabsTrigger
-                key={p.id}
-                value={p.id}
-                className="rounded-xl text-sm font-medium data-[state=active]:bg-pine-500 data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-2"
-              >
-                {p.tab}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <TabsList className="bg-white border border-gray-200 p-1 rounded-2xl shadow-sm h-auto flex-wrap gap-1 flex-1">
+              {visibleProducts.length > 0 ? visibleProducts.map((p) => (
+                <TabsTrigger
+                  key={p.id}
+                  value={p.id}
+                  className="rounded-xl text-sm font-medium data-[state=active]:bg-pine-500 data-[state=active]:text-white data-[state=active]:shadow-sm px-4 py-2"
+                >
+                  {p.tab}
+                </TabsTrigger>
+              )) : (
+                <span className="px-4 py-2 text-sm text-gray-400">No products match</span>
+              )}
+            </TabsList>
+            <div className="relative shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8 pr-3 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:border-pine-400 focus:ring-1 focus:ring-pine-400 w-44 transition-all"
+              />
+            </div>
+          </div>
 
           {PRODUCTS.map((p) => (
             <TabsContent key={p.id} value={p.id}>

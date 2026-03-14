@@ -33,10 +33,10 @@ def _build_whatsapp_message(
 ) -> str:
     emi_label = f"No-Cost EMI, {tenure_months} months" if is_no_cost else f"EMI, {tenure_months} months"
     return (
-        f"🛍️ Your {product_name} is ready!\n\n"
-        f"💰 EMI: {monthly_display}/month ({emi_label})\n\n"
-        f"🔗 Pay securely: {payment_link_url}\n\n"
-        f"✅ Powered by Pine Labs"
+        f"Your {product_name} is ready!\n\n"
+        f"EMI: {monthly_display}/month ({emi_label})\n\n"
+        f"Pay securely: {payment_link_url}\n\n"
+        f"Powered by Pine Labs"
     )
 
 
