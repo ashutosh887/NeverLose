@@ -10,3 +10,4 @@ pytest-asyncio
 qrcode[pil]
 pydantic
 Pillow
+motor
