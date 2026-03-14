@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Package, CreditCard, Bell } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { EMICard } from "@/components/emi/EMICard";
 import { StackedDealCard } from "@/components/emi/StackedDealCard";
 import { TenureSlider } from "@/components/emi/TenureSlider";
@@ -61,20 +62,34 @@ export function ChatBubble({ message, index = 0, onSelectEMI, onClaimDeal, onPay
         <div
           className={cn(
             "px-4 py-2.5 bg-white border border-gray-100 rounded-2xl rounded-tl-sm",
-            "text-sm text-gray-800 shadow-sm leading-relaxed"
+            "text-sm text-gray-800 shadow-sm"
           )}
         >
-          {message.isStreaming ? (
-            <span>
-              {message.content}
-              <motion.span
-                className="inline-block w-0.5 h-4 bg-pine-500 ml-0.5 align-middle"
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ repeat: Infinity, duration: 0.7 }}
-              />
-            </span>
-          ) : (
-            message.content
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p className="mb-1.5 last:mb-0 leading-relaxed">{children}</p>,
+              h2: ({ children }) => <p className="font-bold text-sm text-gray-900 mt-2 mb-1">{children}</p>,
+              h3: ({ children }) => <p className="font-semibold text-sm text-gray-900 mt-1.5 mb-0.5">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>,
+              li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+              strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+              hr: () => <hr className="my-2 border-gray-200" />,
+              blockquote: ({ children }) => <blockquote className="border-l-4 border-pine-300 pl-3 text-gray-600 italic my-1.5">{children}</blockquote>,
+              table: ({ children }) => <div className="overflow-x-auto my-2"><table className="text-xs w-full border-collapse">{children}</table></div>,
+              th: ({ children }) => <th className="border border-gray-200 px-2 py-1 bg-gray-50 text-left font-semibold">{children}</th>,
+              td: ({ children }) => <td className="border border-gray-200 px-2 py-1">{children}</td>,
+              code: ({ children }) => <code className="bg-gray-100 px-1 rounded text-xs">{children}</code>,
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+          {message.isStreaming && (
+            <motion.span
+              className="inline-block w-0.5 h-4 bg-pine-500 ml-0.5 align-middle"
+              animate={{ opacity: [1, 0, 1] }}
+              transition={{ repeat: Infinity, duration: 0.7 }}
+            />
           )}
         </div>
       )}
