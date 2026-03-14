@@ -28,7 +28,7 @@ export function ChatWidget({
   const [isOpen, setIsOpen] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { messages, isConnected, isLoading, sendMessage, sendSignal } = useWebSocket();
+  const { messages, isConnected, isLoading, toolStatus, sendMessage, sendSignal, clearMessages } = useWebSocket();
   const signalFiredRef = useRef<Set<SignalType>>(new Set());
 
   // Auto-open and fire signal
@@ -47,6 +47,25 @@ export function ChatWidget({
   useEffect(() => {
     if (forceOpen) startTransition(() => setIsOpen(true));
   }, [forceOpen]);
+
+  // Reset signals when product changes
+  useEffect(() => {
+    signalFiredRef.current = new Set();
+  }, [_productId]);
+
+  // Ctrl+Shift+R — reset demo
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "R") {
+        e.preventDefault();
+        clearMessages();
+        signalFiredRef.current = new Set();
+        startTransition(() => setIsOpen(false));
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [clearMessages]);
 
   // Auto-scroll to latest message
   useEffect(() => {
@@ -171,10 +190,11 @@ export function ChatWidget({
               )}
 
               <div className="space-y-3">
-                {messages.map((msg) => (
+                {messages.map((msg, i) => (
                   <ChatBubble
                     key={msg.id}
                     message={msg}
+                    index={i}
                     onClaimDeal={() => sendMessage("Yes, I want to claim this deal")}
                   />
                 ))}
@@ -198,14 +218,15 @@ export function ChatWidget({
                 )}
 
                 {/* Tool status shimmer */}
-                {isLoading && lastMsg?.role === "assistant" && lastMsg.isStreaming === false && (
+                {toolStatus && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     className="flex items-center gap-2 text-xs text-pine-600 px-2"
                   >
                     <Loader2 className="w-3 h-3 animate-spin" />
-                    <span className="font-medium">Checking EMI options...</span>
+                    <span className="font-medium">{toolStatus}</span>
                   </motion.div>
                 )}
 

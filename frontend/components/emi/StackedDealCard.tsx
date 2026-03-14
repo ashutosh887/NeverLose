@@ -33,7 +33,7 @@ export function StackedDealCard({ deal, onClaim }: StackedDealCardProps) {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="relative overflow-hidden rounded-2xl bg-white border-2 border-pine-400 shadow-lg shadow-pine-100"
+      className="relative overflow-hidden rounded-2xl bg-white border-2 border-pine-400 shadow-xl shadow-pine-200/60 ring-1 ring-pine-400/20"
     >
       {/* Gradient stripe top */}
       <div className="h-1 w-full bg-gradient-to-r from-pine-400 via-emerald-400 to-pine-600" />

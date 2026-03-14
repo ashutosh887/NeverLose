@@ -5,6 +5,7 @@ import { CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import QRCode from "react-qr-code";
 import { Progress } from "@/components/ui/progress";
 import { formatInr } from "@/lib/signals";
+import { getPaymentStatus } from "@/lib/clients/api";
 import { cn } from "@/lib/utils";
 
 interface QRCodeDisplayProps {
@@ -32,18 +33,13 @@ export function QRCodeDisplay({ upiString, qrBase64, amountPaisa, orderId }: QRC
     if (status !== "PENDING") return;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/payment-status/${orderId}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (data.payment?.status === "SUCCESS") {
-            setStatus("SUCCESS");
-            clearInterval(interval);
-          }
+        const data = await getPaymentStatus(orderId);
+        if (data.payment?.status === "SUCCESS") {
+          setStatus("SUCCESS");
+          clearInterval(interval);
         }
       } catch {
-        // ignore network errors
+        // ignore network errors — keep polling
       }
     }, 3000);
     return () => clearInterval(interval);

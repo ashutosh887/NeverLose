@@ -16,19 +16,21 @@ import { cn } from "@/lib/utils";
 
 interface ChatBubbleProps {
   message: ChatMessage;
+  index?: number;
   onSelectEMI?: (scheme: EMIScheme) => void;
   onClaimDeal?: () => void;
 }
 
-export function ChatBubble({ message, onSelectEMI, onClaimDeal }: ChatBubbleProps) {
+export function ChatBubble({ message, index = 0, onSelectEMI, onClaimDeal }: ChatBubbleProps) {
   const isUser = message.role === "user";
+  const staggerDelay = Math.min(index * 0.06, 0.3);
 
   if (isUser) {
     return (
       <motion.div
         initial={{ opacity: 0, x: 12, y: 4 }}
         animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        transition={{ type: "spring", stiffness: 400, damping: 30, delay: staggerDelay }}
         className="flex justify-end"
       >
         <div
@@ -47,7 +49,7 @@ export function ChatBubble({ message, onSelectEMI, onClaimDeal }: ChatBubbleProp
     <motion.div
       initial={{ opacity: 0, x: -12, y: 4 }}
       animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30, delay: staggerDelay }}
       className="flex flex-col gap-2 max-w-[94%]"
     >
       {/* Text content */}
@@ -81,10 +83,11 @@ export function ChatBubble({ message, onSelectEMI, onClaimDeal }: ChatBubbleProp
             (message.data as EMIScheme[])
           )
             ?.slice(0, 4)
-            .map((scheme: EMIScheme) => (
+            .map((scheme: EMIScheme, idx: number) => (
               <EMICard
                 key={scheme.scheme_id}
                 scheme={scheme}
+                index={idx}
                 onSelect={onSelectEMI ?? (() => {})}
               />
             ))}

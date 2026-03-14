@@ -51,15 +51,17 @@ interface EMICardProps {
   scheme: EMIScheme;
   onSelect: (scheme: EMIScheme) => void;
   isSelected?: boolean;
+  index?: number;
 }
 
-export function EMICard({ scheme, onSelect, isSelected }: EMICardProps) {
+export function EMICard({ scheme, onSelect, isSelected, index = 0 }: EMICardProps) {
   const bankCfg = BANK_CONFIG[scheme.bank_code] ?? DEFAULT_BANK;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.06 }}
       whileTap={{ scale: 0.985 }}
       onClick={() => onSelect(scheme)}
       className={cn(
